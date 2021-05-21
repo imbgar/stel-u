@@ -1,0 +1,24 @@
+Exercise 0.1.1: MFA Script
+
+    Create a script to automate the gathering and assigning of the temporary AWS MFA credentials from Option 1.
+    Try to reduce the amount of manual input as much as possible.
+
+===
+get-creds.sh
+===
+
+Question 0.1.1: 1
+
+What method did you use to store the aws credentials? What are some other options?
+
+===
+I used environment variables. I could've manipulated a temp profile in the credentials file but this made the most sense.
+===
+
+Question 0.1.1: 2
+
+Which AWS environment variable cannot be set in order to run the aws sts get-session-token command?
+
+===
+The MFA token itself
+===
