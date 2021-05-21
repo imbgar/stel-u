@@ -4,4 +4,9 @@ Resources:
   TheBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: elpollolocodude
+      BucketName: !Ref BucketName
+Parameters:
+  BucketName:
+    Description: The name of the bucket
+    Type: String
+    Default: ''
