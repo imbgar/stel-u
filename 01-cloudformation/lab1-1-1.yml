@@ -4,7 +4,7 @@ Resources:
   TheBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref BucketName
+      BucketName: !Join ['-', [!Ref AWS::AccountId, !Ref BucketName]]
 Parameters:
   BucketName:
     Description: The name of the bucket
