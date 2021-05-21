@@ -4,9 +4,13 @@ Resources:
   TheBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Join ['-', [!Ref AWS::AccountId, !Ref BucketName]]
+      BucketName: !Join ['-', [!If [InPrimary, !Ref AWS::AccountId, !Ref AWS::Region], !Ref BucketName]]
 Parameters:
   BucketName:
     Description: The name of the bucket
     Type: String
     Default: ''
+Conditions:
+  InPrimary: !Equals
+    - !Ref AWS::Region
+    - us-east-1
