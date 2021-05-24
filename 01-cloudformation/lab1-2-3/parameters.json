@@ -1,0 +1,10 @@
+[
+    {
+      "ParameterKey": "UserName",
+      "ParameterValue": "imbgar-import-lab"
+    },
+    {
+      "ParameterKey": "PolicyStack",
+      "ParameterValue": "bgariamlab"
+    }
+]
