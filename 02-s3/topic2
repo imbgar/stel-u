@@ -1,0 +1,224 @@
+Practice 2.1
+
+How would you copy the contents of the directory to the top level of your bucket?
+
+===
+aws s3 cp data/ s3://imbgarlab/ --recursive
+aws s3 sync data/ s3://imbgarlab/
+===
+
+How would you copy the contents and include the directory name in the s3 object paths?
+
+===
+aws s3 cp data/ s3://imbgarlab/data --recursive
+aws s3 sync data/ s3://imbgarlab/data
+===
+
+Question: Object Access
+
+Can anyone else see your file yet?
+
+===
+Only principals within the AWS account with access. Otherwise, default permissions block all public access.
+===
+
+For further reading, see the S3 Access Policy Language Overview.
+Question: Sync vs Copy
+
+What makes "sync" a better choice than "cp" for some S3 uploads?
+
+It will perform recursion by default. With --delete flag it can include deletion when it occurs in source
+
+Lab 2.1.3: Exclude Private Objects When Uploading to a Bucket
+
+Add a private file to your data directory. Then, upload the directory to your bucket again without including the private file.
+
+    Verify after uploading that the file doesn't exist in the bucket.
+
+    Did you find two different ways to accomplish this task? If not, make sure to read the documentation on sync flags.
+===
+
+aws s3 cp data/ s3://imbgarlab/data --exclude '.*.*' --recursive
+aws s3 cp data/ s3://imbgarlab/data --include '*.jpg' --recursive
+
+aws s3 sync data/ s3://imbgarlab/data/ --exclude '.*.*' --recursive
+aws s3 sync data/ s3://imbgarlab/data/ --include '*.jpg' --recursive
+===
+
+Lab 2.1.4: Clean Up
+
+Clean up: remove your bucket. What do you have to do before you can remove it?
+
+===
+I had to delete all of the objects within that bucket before it could be deleted.
+===
+
+
+Lab 2.2.1: Recreate the Bucket with Public Data
+
+Create your bucket again and upload the contents of your "data" directory with the "aws s3 sync" command.
+
+    Include the "private.txt" file this time.
+
+    Use a "sync" command parameter to make all the files in the bucket publicly readable.
+
+===
+aws s3 sync data/ s3://imbgarlab/data/ --acl public-read
+===
+
+After this, can you download one of your files from the bucket without using your API credentials?
+
+===
+Yes
+===
+
+How could you use "aws s3 cp" or "aws s3 sync" command to modify the permissions on the file?
+
+===
+aws s3 cp data/.private.txt s3://imbgarlab/data/ --acl public-read
+aws s3 sync data/.private.txt s3://imbgarlab/data/ --acl public-read
+===
+
+(Hint: see the list of Canned ACLs.)
+Question: Changing Permissions
+
+Is there a way you can change the permissions on the file without re-uploading it?
+
+===
+aws s3api put-object-acl --bucket imbgarlab --key /data/.private.txt  --acl bucket-owner-full-control
+===
+
+Make all files publicly readable, grant yourself access to do anything to all files, and block access to "private.txt" unless you're an authenticated user:
+
+    Create and assign an IAM policy to explicitly grant yourself maintenance access.
+
+    Set a bucket policy to grant public read access.
+
+    Set an S3 ACL on "private.txt" to block read access unless you're authenticated.
+
+===
+aws iam create-policy --policy-name imbgarlab_allow_s3 --policy-document file://iam_policy.json --description "This policy allows the user to access the imbgarlab S3 bucket"
+aws iam attach-user-policy --user-name brandon.garcia.labs --policy-arn arn:aws:iam::324320755747:policy/imbgarlab_allow_s3
+aws s3api create-bucket --bucket imbgarlab --acl public-read
+aws s3api put-object-acl --bucket imbgarlab --key /data/.private.txt  --acl authenticated-read
+aws s3api put-bucket-acl --bucket imbgarlab --key /data/.private.txt  --acl authenticated-read
+===
+
+When you're done, verify that anybody (e.g. you, unauthenticated) can read most files but can't read "private.txt", and only you can modify file and read "private.txt".
+
+===
+Yes
+===
+
+What do you see when you try to read the existing bucket policy before you replace it?
+===
+An error occurred (NoSuchBucketPolicy) when calling the GetBucketPolicy operation: The bucket policy does not exist
+===
+
+How do the default permissions differ from the policy you're setting?
+
+===
+Default permissions only allow principals within the AWS account that have access. The ones I'm setting are more specific.
+===
+
+Lab 2.3.2: Object Versions
+
+Delete one of the objects that you changed.
+
+Can you still retrieve old versions of the object you removed?
+
+===
+Yes
+===
+
+How would you delete all versions?
+
+===
+You would have to list all of the object versions and execute a deletion for all of them individually.
+===
+
+Can you change a single tag on a bucket or object, or do you have to change all its tags at once?
+
+===
+You can change either bucket/object tags individually 
+
+aws s3api put-object-tagging \
+    --bucket us-east-1-324320755747-elpollolocodude \
+    --key data/.private.txt \
+    --tagging '{"TagSet": [{ "Key": "Privacy", "Value": "confidential" }]}'
+
+aws s3api put-bucket-tagging --bucket my-bucket --tagging 'TagSet=[{Key=organization,Value=marketing}]'
+===
+
+Can you change a single tag on a bucket or object, or do you have to change all its tags at once?
+===
+No, you must change all of them at once. Can be solved in custom logic.
+===
+
+Lab 2.3.4: Object Lifecycles
+
+Create a lifecycle policy for the bucket:
+
+    Move objects to the Infrequent Access class after 30 days.
+
+    Move them to Glacier after 90 days.
+
+    Expire all noncurrent object versions after 7 days.
+
+    Remove all aborted multipart uploads after 1 day.
+
+After updating your stack, use the S3 console's Management Lifecycle tab to double-check your settings.
+Question: Improving Speed
+
+Can you make any of these transitions more quickly?
+
+===
+You could move to glacier after 60 days
+===
+
+Retrospective 2.3
+
+How could the lifecycle and versioning features of S3 be used to manage the lifecycle of a web application? Would you use those features to manage the webapp code itself, or just the app's data?
+
+===
+One could manage data of the application depending on multiple prefixes in an s3 bucket. An app that processes PDFs into a concatenated file might concat with clientside code, then output to an s3 bucket so the user could retrieve them for up to 24 hours. You could use lifecycle rules to manage that purging.
+
+You'd want to use those features for just the app's data
+===
+
+Lab 2.4.1: Server-Side Encryption
+
+Modify your bucket policy to require server-side encryption with an S3-managed key ("SSE-S3").
+Question: Encrypting Existing Objects
+
+Do you need to re-upload all your files to get them encrypted?
+
+===
+Yes
+===
+
+Look through the S3 encryption docs. What benefits might you gain by using a KMS key instead of an S3-managed key?
+
+===
+SE-KMS also provides you with an audit trail that shows when your CMK was used and by whom. Additionally, you can create and manage customer managed CMKs or use AWS managed CMKs that are unique to you, your service, and your Region. 
+===
+
+Going further, what benefits might you gain by using a KMS key you created yourself?
+
+===
+You have more control over the keys themselves.
+===
+
+Retrospective 2.4
+
+After changing your bucket policy, can you upload files that aren't encrypted? If so, how would you require encryption on all files?
+
+===
+The encryption is enabled at the bucket level, so no I can't upload files that aren't encrypted.
+===
+
+Can you use different keys for different objects?
+
+===
+Yes, by specifying --sse-kms-key-id, --sse, --sse-c options for the desired use case.
+===
