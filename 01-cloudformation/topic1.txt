@@ -1,0 +1,120 @@
+Lesson 1.1
+    Lab 1.1.1
+
+    ===
+    No outputs were provided from the stack.
+    ===
+
+    Lab 1.1.5: Termination Protection; Clean up
+
+    ===
+    The CLI returned a ValidationError
+    ===
+
+    Retrospective 1.1
+    Question: Why do we prefer the YAML format for CFN templates?
+
+    ===
+    YAML format is a more human readable markup than trying to use JSON
+    ===
+
+    Question: What else can you do to prevent resources in a stack from being deleted?
+
+    ===
+    Specify a DeletionPolicy within the template for each resource, use IAM permissions or stack policy to mitigate the risk.
+    ===
+
+    How is that different from applying Termination Protection?
+
+    ===
+    DeletionPolicy can be specified per resource, whereas termination protection is applied to the stack itself.
+    ===
+
+    Task: String Substitution
+
+    Demonstrate 2 ways to code string combination/substitution using built-in CFN functions.
+
+    ===
+    To solve the region/account id prefixing you can do either
+
+    1:
+
+    Resources:
+    TheBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+        BucketName: !Join ['-', [!If [InPrimary, !Ref AWS::AccountId, !Ref AWS::Region], !Ref BucketName]]
+
+    or
+
+    2:
+
+    Resources:
+    TheBucket:
+        Type: AWS::S3::Bucket
+        Condition: InPrimary
+        Properties:
+        BucketName: !If [InPrimary, !Join ['-', [!Ref AWS::AccountId, !Ref BucketName]], !Join ['-', [!Ref AWS::Region, !Ref BucketName]]]
+
+    You can also use !Sub to do something similar.
+    ===
+
+Lesson 1.2
+
+    Lab 1.2.4: Import/Export Dependencies
+
+    Delete your CFN stacks in the same order you created them in. Did you succeed? If not, describe how you would identify the problem, and resolve it yourself.
+
+    ===
+    I would review the events section of the stack after finding that it didn't properly delete after running command via CLI. I would review the importance of the resources and make a decision whether or not to decimate them, or contact the resource owners before decommissioning the stack.
+    ===
+
+    Retrospective 1.2
+    Task: Policy Tester
+
+    Show how to use the IAM policy tester to demonstrate that the user cannot perform 'Put' actions on any S3 buckets.
+
+    ===
+    https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html
+
+    To get the list of context keys (AWS CLI, AWS API)
+
+    Use the following to evaluate a list of policies and return a list of context keys that are used in the policies.
+
+        AWS CLI: aws iam get-context-keys-for-custom-policy and aws iam get-context-keys-for-principal-policy
+
+        AWS API: GetContextKeysForCustomPolicy and GetContextKeysForPrincipalPolicy
+
+    To simulate IAM policies (AWS CLI, AWS API)
+
+    Use the following to simulate IAM policies to determine a user's effective permissions.
+
+        AWS CLI: aws iam simulate-custom-policy and aws iam simulate-principal-policy
+
+        AWS API: SimulateCustomPolicy and SimulatePrincipalPolicy
+    ===
+
+    Retrospective 1.3
+    Question: Portability
+
+    Can you list 4 features of CloudFormation that help make a CFN template portable code?
+
+    ===
+    Parameters
+    Outputs
+    Exports
+    PsuedoParameters
+    ===
+    Task: DRYer Code
+
+    How reusable is your SDK-orchestration code? Did you share a single method to load the configuration file for both stack creation/updating (Lab 1.3.2) and deletion (Lab 1.3.3)? 
+    
+    ===
+    Yes
+    ===
+
+    Did you separate the methods for finding existing stacks from the methods that create or update those stacks?
+    
+    ===
+    Yes
+    ===
