@@ -100,7 +100,6 @@ Make all files publicly readable, grant yourself access to do anything to all fi
 aws iam create-policy --policy-name imbgarlab_allow_s3 --policy-document file://iam_policy.json --description "This policy allows the user to access the imbgarlab S3 bucket"
 aws iam attach-user-policy --user-name brandon.garcia.labs --policy-arn arn:aws:iam::324320755747:policy/imbgarlab_allow_s3
 aws s3api create-bucket --bucket imbgarlab --acl public-read
-aws s3api put-object-acl --bucket imbgarlab --key /data/.private.txt  --acl authenticated-read
 aws s3api put-bucket-acl --bucket imbgarlab --key /data/.private.txt  --acl authenticated-read
 ===
 
