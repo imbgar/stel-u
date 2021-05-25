@@ -1,0 +1,60 @@
+Lab 3.1.3: Customer Managed Policy Re-Use
+
+Update the template further to demonstrate reuse of the customer managed policy:
+
+    Add another IAM Role.
+
+    Attach the customer managed policy resource to the new role.
+
+    Be sure that you're not referencing an AWS managed policy in the role.
+
+    Add/Update the Description of the customer managed policy to indicate the re-use of the policy.
+
+    Update the Stack. Did the stack update work?
+        Query the stack to determine its state.
+        If the stack update was not successful, troubleshoot and determine why.
+
+===
+I had several issues due to renaming the policy and duplicate role names. Easy to resolve. Had to create a differently named resource to modify certain properties.
+===
+
+Lab 3.1.5: Policy Simulator
+
+===
+aws iam simulate-custom-policy --policy-input-list '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"ec2:Describe*","Resource":"*"},{"Effect":"Allow","Action":"elasticloadbalancing:Describe*","Resource":"*"},{"Effect":"Allow","Action":["cloudwatch:ListMetrics","cloudwatch:GetMetricStatistics","cloudwatch:Describe*"],"Resource":"*"},{"Effect":"Allow","Action":"autoscaling:Describe*","Resource":"*"}]}' '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["iam:GenerateCredentialReport","iam:GenerateServiceLastAccessedDetails","iam:Get*","iam:List*","iam:SimulateCustomPolicy","iam:SimulatePrincipalPolicy"],"Resource":"*"}]}' --action-names 'iam:CreateRole' 'iam:ListRoles' 'iam:SimulatePrincipalPolicy' 'ec2:DescribeImages' 'ec2:RunInstances' 'ec2:DescribeSecurityGroups'
+===
+
+Retrospective 3.1
+
+In Lab 3.1.5, you had to determine the Amazon resource Names (ARN) of the stack's two roles in order to pass those values to the CLI function. You probably used the AWS web console to get the ARN for each role. What could you have done to your CFN template to make that unnecessary?
+
+===
+Used outputs for the role ARN
+===
+
+Lab 3.2.2: Explore the assumed role
+
+Test the capabilities of this new Role.
+
+    Using the AWS CLI, assume that updated role and list the S3 buckets in the us-east-1 region.
+
+    Acting as this role, try to create an S3 bucket using the AWS CLI.
+        Did it succeed? It should not have!
+
+        ===
+        No! Access denied
+        ===
+
+Retrospective 3.2
+
+In the context of an AWS User or Role, what is the difference between an inline policy and a customer managed policy? What are the differences between a customer managed policy and an AWS managed policy?
+
+===
+An Inline policy is specified along with the entity that you're creating. A customer managed policy can be attached to other entities, and can persist once you remove the resource. An AWS managed policy persists in the AWS ecosystem regardless of what you create/delete. You don't have control over the permissions contained within the AWS managed policies.
+===
+
+When assuming a role, are the permissions of the initial principal mixed with those of the role being assumed? Describe how that could easily be demonstrated with both a positive and negative testing approach.
+
+===
+The permissions aren't mixed. I tried to perform an action that is allowed by my user, and it doesn't work.
+===
