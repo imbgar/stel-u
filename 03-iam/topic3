@@ -58,3 +58,57 @@ When assuming a role, are the permissions of the initial principal mixed with th
 ===
 The permissions aren't mixed. I tried to perform an action that is allowed by my user, and it doesn't work.
 ===
+
+Lab 3.3.2: Resource restrictions
+
+Add a resource restriction to the role's policy that limits full access to the S3 service for just one of the two buckets and allows only read-only access to the other.
+
+    Update the stack.
+
+    Assume the new role and perform these steps as that role:
+        List the contents of your 2 new buckets.
+        Upload a file to each new bucket.
+
+Were there any errors? If so, take note of them.
+
+===
+Access denied for the bucket that wasn't specified in the policy.
+===
+
+What were the results you expected, based on the role's policy?
+
+===
+Expected Access denied for the bucket that wasn't specified in the policy.
+===
+
+Were the tests you ran for resource- and condition-specific restrictions exhaustive? Did you consider additional [positive and/or negative tests] that could be automated in order to confirm the permissions for the Role?
+
+===
+Not exhaustive. Could've used the IAM policy simulator to get a report of all actions.
+===
+Task: Positive and Negative Tests
+
+Code at least one new positive and one new negative test.
+
+===
+iam policy simulator
+===
+
+Is it possible to limit uploads of objects with a specific prefix (e.g. starting with "lebowski/") to an S3 bucket using IAM conditions? If not, how else could this be accomplished?
+
+===
+Yes
+
+{
+    "Sid": "AllowUploadToSpecificKey",
+    "Action": ["s3:Put*"],
+    "Effect": "Allow",
+    "Resource": ["arn:aws:s3:::my-bucket/lebowski/*"]
+}
+===
+
+Research and review the best method to limit uploads with a specific prefix to an S3 bucket.
+
+===
+You might also do this as a bucket policy.
+===
