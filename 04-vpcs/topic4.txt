@@ -1,0 +1,158 @@
+Lab 4.1.4: Test Instance
+
+Launch an EC2 instance into your VPC.
+
+    Create another CFN template that specifies an EC2 instance.
+
+    For the subnet and VPC, reference the outputs from your VPC stack.
+
+    Use the latest Amazon Linux AMI.
+
+    Create a new parameter file for this template. Include the EC2 AMI ID, a T2 instance type, and the name of your key pair.
+
+    Provide the instance ID and private IP address as stack outputs.
+
+    Use the same tags you put on your VPC.
+
+After you launch your new stack, can you ssh to the instance?
+
+===
+Nope, no connectivity is provisioned as of yet
+===
+
+Is there a way that you can verify Internet connectivity from the instance without ssh'ing to it?
+
+===
+Ping it.
+===
+
+Lab 4.1.5: Security Group
+
+Add a security group to your EC2 stack:
+
+    Allow ICMP (for ping) and ssh traffic into your instance.
+
+Question: Connectivity
+
+Can you ssh to your instance yet?
+
+===
+Yes, I added 'MapPublicIpOnLaunch: true' property to subnet.
+===
+
+Lab 4.1.6: Elastic IP
+
+Add an Elastic IP to your EC2 stack:
+
+    Attach it to your EC2 resource.
+
+    Provide the public IP as a stack output.
+
+Your EC2 was already on a network with an IGW, and now we've fully exposed it to the Internet by giving it a public IP address that's reachable from anywhere outside your VPC.
+
+Can you ping your instance now?
+
+===
+Yes
+===
+
+Can you ssh into your instance now?
+
+===
+Yes
+===
+
+If you can ssh, can you send any traffic (e.g. curl) out to the Internet?
+
+===
+Yes, becuz of default route to IGW, the IGW itself, lack of ACL, then the security group rule allowing it out
+===
+
+At this point, you've made your public EC2 instance an ssh bastion. We'll make use of that to explore your network below.
+
+Lab 4.1.7: NAT Gateway
+
+Update your VPC template/stack by adding a NAT gateway.
+
+    Attach your NAT GW to the subnet you created earlier.
+
+    Provision and attach a new Elastic IP for the NAT gateway.
+
+We need a private instance to explore some of the concepts below. Let's add a new subnet and put a new EC2 instance on it. Add them to your existing instance stack.
+
+    The new subnet must have a unique netblock.
+
+    The NAT gateway should be the default route for the new subnet.
+
+    Aside from the subnet association, configure this instance just like the first one.
+
+    This instance will not have an Elastic IP.
+
+Can you find a way to ssh to this instance?
+
+===
+Via jump instance that is accessible via public subnet
+===
+
+If you can ssh to it, can you send traffic out?
+
+===
+Yes
+===
+
+If you delete the NAT gateway, what happens to the ssh session on your private instance?
+
+===
+It stays up due to connectivity from jump
+===
+
+If you recreate the NAT gateway and detach the Elastic IP from the public EC2 instance, can you still reach the instance from the outside?
+
+===
+No
+===
+
+Lab 4.1.8: Network ACL
+
+Add Network ACLs to your VPC stack.
+
+First, add one on the public subnet:
+
+    It applies to all traffic (0.0.0.0/0).
+
+    Only allows ssh traffic from your IP address.
+
+    Allows egress traffic to anything.
+
+Can you still reach your EC2 instances?
+
+===
+Yes
+===
+
+Lab 4.2.2: EC2 across VPCs
+
+Create a new EC2 template similar to your original one, but without an Elastic IP.
+
+    Launch it in your new private VPC.
+
+Can you ping this instance from the public instance you created earlier?
+
+===
+Yes
+===
+
+Can you ping your public instance from this private instance? Which IPs are reachable, the public instance's private IP or its public IP, or both?
+
+===
+Yes, only private IP.
+===
+
+Retrospective 4.2
+Question: Corporate Networks
+
+How would you integrate your VPC with a corporate network?
+
+===
+VPN/VGW/DirectConnect
+===
