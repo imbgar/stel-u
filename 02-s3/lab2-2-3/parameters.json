@@ -1,0 +1,10 @@
+[
+    {
+      "ParameterKey": "BucketName",
+      "ParameterValue": "imbgarlab"
+    },
+    {
+      "ParameterKey": "UserName",
+      "ParameterValue": "brandon.garcia.labs"
+    }
+]
