@@ -45,10 +45,6 @@ then
     return
 fi
 
-echo $ACTION
-echo $PARAMETERS
-echo $STACK
-
 if [ "$ACTION" = "create" ]
 then
     CMD="aws cloudformation create-stack --stack-name $STACK --template-body file://template.yml"
