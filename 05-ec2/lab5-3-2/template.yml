@@ -44,7 +44,7 @@ Resources:
         KeyName: !Ref EC2KeyPairName
         InstanceType: t2.micro
         IamInstanceProfile:
-          Name: !Ref labRole
+          Name: !Ref labInstanceProfile
         Monitoring: 
           Enabled: true
         NetworkInterfaces:
