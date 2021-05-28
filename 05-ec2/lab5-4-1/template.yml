@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Creates EC2 resource for Stelligent-U Topic 5: VPC Practice 5.1.2"
+Parameters: 
+    LatestUbuntuAmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: '/aws/service/canonical/ubuntu/server/18.04/stable/current/amd64/hvm/ebs-gp2/ami-id'
+    LatestWindows2016AmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base'
+    LatestWindows2012R2AmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: '/aws/service/ami-windows-latest/Windows_Server-2012-R2_RTM-English-64Bit-Base'
+    EC2KeyPairName:
+      Description: 'The key to use for the instance'
+      Type: String
+      Default: ''
+MetaData:
+  AWS::CloudFormation::Init: 
+  configSets: 
+    Initialize:
+      - "prep"
+      - "download"
+      - "install"
+      - "run"
+  cwCompleteInstall: 
+    commands: 
+      create_work_dir: 
+        command: "mkdir /work"
+        cwd: "~"
+      download_cw_agent: 
+        command: ["wget", "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"]
+        cwd: "/work"
+      download_cw_agent_config: 
+        command: ["curl", "https://us-east-1-324320755747-elpollolocodude.s3.amazonaws.com/config.json", "-o", "config.json"]
+        cwd: "/work"
+      install_collectd_pkg: 
+        command: ["apt-get", "install", "collectd" , "-y"]
+        cwd: "/work"
+      install_cw_agent: 
+        command: ["dpkg", "-i", "-E", "./amazon-cloudwatch-agent.deb"]
+        cwd: "/work"
+      run_cw_agent: 
+        command: ["/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl", "-a", "fetch-config", "-m", "ec2", "-s", "-c", "file:/work/config.json"]
+        cwd: "~"
+Resources: 
+  labRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: bgarec2labrole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+  labInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref labRole
+  EC2Template:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: EC22012R2
+      LaunchTemplateData: 
+        KeyName: !Ref EC2KeyPairName
+        InstanceType: t2.micro
+        IamInstanceProfile:
+          Name: !Ref labInstanceProfile
+        Monitoring: 
+          Enabled: true
+        NetworkInterfaces:
+          - SubnetId: !ImportValue bgar-lab-private-subnet-id
+            DeviceIndex: 0
+            Groups:
+              - !Ref EC2SCG
+        BlockDeviceMapping:
+          - Ebs: 
+              Encrypted: true
+              VolumeSize: 25
+              VolumeType: gp2
+            NoDevice: String
+            VirtualName: String
+        UserData: IyEvYmluL2Jhc2gKd2dldCBodHRwczovL3MzLmFtYXpvbmF3cy5jb20vYW1hem9uY2xvdWR3YXRjaC1hZ2VudC91YnVudHUvYW1kNjQvbGF0ZXN0L2FtYXpvbi1jbG91ZHdhdGNoLWFnZW50LmRlYgpkcGtnIC1pIC1FIC4vYW1hem9uLWNsb3Vkd2F0Y2gtYWdlbnQuZGViCmFwdC1nZXQgdXBkYXRlCmFwdC1nZXQgaW5zdGFsbCBjb2xsZWN0ZCAteQpta2RpciAvY2hlY2sKY2QgL2NoZWNrCmN1cmwgaHR0cHM6Ly91cy1lYXN0LTEtMzI0MzIwNzU1NzQ3LWVscG9sbG9sb2NvZHVkZS5zMy5hbWF6b25hd3MuY29tL2NvbmZpZy5qc29uIC1vIGNvbmZpZy5qc29uCi9vcHQvYXdzL2FtYXpvbi1jbG91ZHdhdGNoLWFnZW50L2Jpbi9hbWF6b24tY2xvdWR3YXRjaC1hZ2VudC1jdGwgLWEgZmV0Y2gtY29uZmlnIC1tIGVjMiAtcyAtYyBmaWxlOi9jaGVjay9jb25maWcuanNvbg==
+  UbuntuInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref EC2Template
+        Version: !GetAtt EC2Template.LatestVersionNumber
+      ImageId: !Ref LatestUbuntuAmiId
+      Tags: 
+        - Key: Name
+          Value: bgar-Ubuntu-lab51
+        - Key: user
+          Value: brandon.garcia.labs
+        - Key: stelligent-u-lesson
+          Value: '5.2'
+        - Key: stelligent-u-lab
+          Value: '5.2.1'
+  EIP:
+    Type: AWS::EC2::EIP
+    Properties: 
+      Domain: vpc
+      InstanceId: !Ref UbuntuInstance
+      Tags: 
+        - Key: user
+          Value: brandon.garcia.labs
+        - Key: stelligent-u-lesson
+          Value: '5.2'
+        - Key: stelligent-u-lab
+          Value: '5.2.1'
+  EC2SCG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: bgar-stelu-l-512
+      GroupDescription: 'bgar stelu sg'
+      VpcId: !ImportValue bgar-lab-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 24.32.231.81/32
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 24.32.231.81/32
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: user
+          Value: brandon.garcia.labs
+        - Key: stelligent-u-lesson
+          Value: '5.2'
+        - Key: stelligent-u-lab
+          Value: '5.2.1'
+Outputs:
+  UbuntuInstanceId:
+    Description: The Ubuntu instance id
+    Value: !Ref UbuntuInstance
+  UbuntuPrivateIp:
+    Description: The Ubuntu instance private ip
+    Value: !GetAtt UbuntuInstance.PrivateIp
+  UbuntuEIP:
+    Description: The Ubuntu instance elastic ip
+    Value: !Ref EIP
+  InstanceRoleArn:
+    Description: The instance role
+    Value: !Ref labRole
+  InstanceProfile:
+    Description: The instance profile
+    Value: !Ref labInstanceProfile
