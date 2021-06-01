@@ -1,0 +1,10 @@
+[
+    {
+      "ParameterKey": "EC2KeyPairName",
+      "ParameterValue": "bgar-stelu"
+    },
+    {
+      "ParameterKey": "DataVolSnapshotId",
+      "ParameterValue": "snap-0f4d21c8fae12843c"
+    }
+]

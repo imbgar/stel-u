@@ -1,0 +1,136 @@
+Lab 5.1.1: Cloud9's Instance Metadata
+
+EC2 services are the engine behind your Cloud9 development environment. Describe these instance attributes by querying the Cloud9 environment's instance metadata:
+
+    the image snapshot, or Amazon Machine Image (AMI), the instance was launched from
+
+    the Type of instance created from that AMI
+
+    the public IPV4 IP address
+
+    the Security Groups the instance is associated with
+
+    the networking Subnet ID the instance was launched into
+
+Save your queries (but not the outputs) in your source code.
+
+=== 
+TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` 
+
+curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/ami-id
+curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-type
+curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/public-ipv4
+curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/security-groups
+curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/network/interfaces/macs/<*>/subnet-id
+===
+
+Lab 5.1.3: Update Your Stack
+
+Change the AMI ID for the Windows instance to instead launch an AMI for Windows Server 2012 R2:
+
+    Update your Stack.
+
+    Query the stack's events using the AWS CLI. What happened to your original EC2 Windows instance?
+
+===
+It was deleted then replaced
+===
+
+Retrospective 5.1
+Task: Automating AMI Discovery
+
+In lab 2, how did you find the AMI IDs required to launch the instances in your target region? If you did not use a scripted mechanism, go back and change your lab's code and repeat that lab: parameterize the CFN template to accept both Linux and Windows AMI IDs, and provide the values via a scripted mechanism.
+
+===
+I used SSM parameters for all the ami ids
+
+Parameters: 
+    LatestUbuntuAmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: '/aws/service/canonical/ubuntu/server/18.04/stable/current/amd64/hvm/ebs-gp2/ami-id'
+    LatestWindows2016AmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base'
+    LatestWindows2012R2AmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: '/aws/service/ami-windows-latest/Windows_Server-2012-R2_RTM-English-64Bit-Base'
+    EC2KeyPairName:
+      Description: 'The key to use for the instance'
+      Type: String
+      Default: ''
+===
+
+When updating a Stack containing an EC2 instance, what other changes will cause the same thing to occur as in Lab 5.1.3?
+
+===
+Any properties marked 'Update requires: Replacement' in https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
+===
+
+Lab 5.2.1: Elastic IP
+
+Creating an Elastic IP (EIP) address allows your account to reserve a static IP address. Applying this to an instance enables you to reach that instance via that IP address. In the event of that instance's failure, migrating the EIP to a replacement instance means processes dependent on services available at that IP address can continue to function.
+
+    Remove your Windows instance from the CFN template. We will be working with just the Ubuntu 16 instance.
+
+    Update the CFN template to create an EIP and associate that EIP with your Ubuntu instance.
+
+    Create a CFN Output from the newly-created EIP's IPV4 address.
+
+    Update the Stack.
+
+    Using the AWS CLI, retrieve the Stack's outputs to fetch the EIP's IPV4 address.
+
+Try pinging that IP address. Does it work?
+
+    Using the CFN template, create a Security Group enabling ICMP.
+
+    Attach the security group to your Launch Template.
+
+    Recreate the Stack.
+
+Can you ping your instance now? If not, troubleshoot and fix the issue using your CFN template.
+
+===
+Yes 
+===
+
+Lab 5.2.2: SSH Keys
+
+Being able to log into your instance using Secure Shell (SSH) is generally... a security vulnerability. Nonetheless, during the development of provisioning scripts and protocols, it is useful to be able to SSH into the instance to debug and troubleshoot issues.
+
+    Use the AWS CLI to generate an AWS SSH Key Pair. Store the private key locally in your development instance's .ssh folder.
+        When generating a keypair on the CLI, the private key is returned as a single string with newline characters embedded in it. To easily get the RSA string into a properly formatted private key file, you can do the following: echo -e "rsa blob" > ./path/to/privatekey.pem
+
+    Update the CFN template to apply the new Key Pair to your Launch Template.
+
+    Recreate the Stack.
+
+Can you SSH into the instance?
+
+    Update the CFN template to modify the ICMP-enabling Security Group, enabling SSH ingress on Port 22 from your IP and update the stack.
+
+Now can you SSH into your instance? If not, troubleshoot and fix the issue using your CFN template.
+
+===
+Yes
+===
+
+Lab 5.3.2: Installing the CloudWatch Agent
+
+Let's install the CloudWatch Agent on that same Ubuntu instance using two more important features of EC2 Instance provisioning: instance profiles and userdata. Instance profiles allow the instance to assume a role and utilize that role's privileges to perform actions on AWS. Userdata gives you the ability to run commands on the instance being launched. If you get stuck SSH into the machine and use the logs referenced in the Userdata docs to debug.
+
+    Modify your CFN template so that your Launch Template installs and starts the CloudWatch Agent on boot-up of your Ubuntu 16.04 LTS Instance.
+        Is it necessary to apply monitoring scripts to send data to CloudWatch?
+
+===
+===
+
+    Create a new role that trusts the EC2 Service to assume it, and that has the privileges to perform whatever actions are necessary to provide the additional metrics to CloudWatch.
+
+    Create a corresponding instance profile and apply it to your Launch Template.
+
+    Make sure a public IP is assigned to your instance
+
+    Recreate your stack so UserData will execute
+
+Compare those same metrics with the values received from Lab 5.3.1. Record your results.

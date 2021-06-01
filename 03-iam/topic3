@@ -1,0 +1,114 @@
+Lab 3.1.3: Customer Managed Policy Re-Use
+
+Update the template further to demonstrate reuse of the customer managed policy:
+
+    Add another IAM Role.
+
+    Attach the customer managed policy resource to the new role.
+
+    Be sure that you're not referencing an AWS managed policy in the role.
+
+    Add/Update the Description of the customer managed policy to indicate the re-use of the policy.
+
+    Update the Stack. Did the stack update work?
+        Query the stack to determine its state.
+        If the stack update was not successful, troubleshoot and determine why.
+
+===
+I had several issues due to renaming the policy and duplicate role names. Easy to resolve. Had to create a differently named resource to modify certain properties.
+===
+
+Lab 3.1.5: Policy Simulator
+
+===
+aws iam simulate-custom-policy --policy-input-list '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"ec2:Describe*","Resource":"*"},{"Effect":"Allow","Action":"elasticloadbalancing:Describe*","Resource":"*"},{"Effect":"Allow","Action":["cloudwatch:ListMetrics","cloudwatch:GetMetricStatistics","cloudwatch:Describe*"],"Resource":"*"},{"Effect":"Allow","Action":"autoscaling:Describe*","Resource":"*"}]}' '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["iam:GenerateCredentialReport","iam:GenerateServiceLastAccessedDetails","iam:Get*","iam:List*","iam:SimulateCustomPolicy","iam:SimulatePrincipalPolicy"],"Resource":"*"}]}' --action-names 'iam:CreateRole' 'iam:ListRoles' 'iam:SimulatePrincipalPolicy' 'ec2:DescribeImages' 'ec2:RunInstances' 'ec2:DescribeSecurityGroups'
+===
+
+Retrospective 3.1
+
+In Lab 3.1.5, you had to determine the Amazon resource Names (ARN) of the stack's two roles in order to pass those values to the CLI function. You probably used the AWS web console to get the ARN for each role. What could you have done to your CFN template to make that unnecessary?
+
+===
+Used outputs for the role ARN
+===
+
+Lab 3.2.2: Explore the assumed role
+
+Test the capabilities of this new Role.
+
+    Using the AWS CLI, assume that updated role and list the S3 buckets in the us-east-1 region.
+
+    Acting as this role, try to create an S3 bucket using the AWS CLI.
+        Did it succeed? It should not have!
+
+        ===
+        No! Access denied
+        ===
+
+Retrospective 3.2
+
+In the context of an AWS User or Role, what is the difference between an inline policy and a customer managed policy? What are the differences between a customer managed policy and an AWS managed policy?
+
+===
+An Inline policy is specified along with the entity that you're creating. A customer managed policy can be attached to other entities, and can persist once you remove the resource. An AWS managed policy persists in the AWS ecosystem regardless of what you create/delete. You don't have control over the permissions contained within the AWS managed policies.
+===
+
+When assuming a role, are the permissions of the initial principal mixed with those of the role being assumed? Describe how that could easily be demonstrated with both a positive and negative testing approach.
+
+===
+The permissions aren't mixed. I tried to perform an action that is allowed by my user, and it doesn't work.
+===
+
+Lab 3.3.2: Resource restrictions
+
+Add a resource restriction to the role's policy that limits full access to the S3 service for just one of the two buckets and allows only read-only access to the other.
+
+    Update the stack.
+
+    Assume the new role and perform these steps as that role:
+        List the contents of your 2 new buckets.
+        Upload a file to each new bucket.
+
+Were there any errors? If so, take note of them.
+
+===
+Access denied for the bucket that wasn't specified in the policy.
+===
+
+What were the results you expected, based on the role's policy?
+
+===
+Expected Access denied for the bucket that wasn't specified in the policy.
+===
+
+Were the tests you ran for resource- and condition-specific restrictions exhaustive? Did you consider additional [positive and/or negative tests] that could be automated in order to confirm the permissions for the Role?
+
+===
+Not exhaustive. Could've used the IAM policy simulator to get a report of all actions.
+===
+Task: Positive and Negative Tests
+
+Code at least one new positive and one new negative test.
+
+===
+iam policy simulator
+===
+
+Is it possible to limit uploads of objects with a specific prefix (e.g. starting with "lebowski/") to an S3 bucket using IAM conditions? If not, how else could this be accomplished?
+
+===
+Yes
+
+{
+    "Sid": "AllowUploadToSpecificKey",
+    "Action": ["s3:Put*"],
+    "Effect": "Allow",
+    "Resource": ["arn:aws:s3:::my-bucket/lebowski/*"]
+}
+===
+
+Research and review the best method to limit uploads with a specific prefix to an S3 bucket.
+
+===
+You might also do this as a bucket policy.
+===

@@ -1,0 +1,15 @@
+
+[
+    {
+      "ParameterKey": "PeerRegion",
+      "ParameterValue": "us-east-2"
+    },
+    {
+      "ParameterKey": "PeerVPC",
+      "ParameterValue": "vpc-0d0f6dbfc7f8e3dda"
+    },
+    {
+      "ParameterKey": "VPCId",
+      "ParameterValue": "vpc-0a2e38b6e992e1972"
+    }
+]
