@@ -23,7 +23,7 @@ Nope, no connectivity is provisioned as of yet
 Is there a way that you can verify Internet connectivity from the instance without ssh'ing to it?
 
 ===
-Ping it.
+Try and connect to an external location via userdata
 ===
 
 Lab 4.1.5: Security Group
