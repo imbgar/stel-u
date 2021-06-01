@@ -14,6 +14,10 @@ Parameters:
       Description: 'The key to use for the instance'
       Type: String
       Default: ''
+    DataVolSnapshotId:
+      Description: 'The snapshot to be used for the instances data vol'
+      Type: String
+      Default: ''
 Resources: 
   labRole:
     Type: AWS::IAM::Role
@@ -121,6 +125,7 @@ Resources:
           mkdir /data
           mount /dev/xvdb /data
           echo "/dev/xvdb    /data   xfs    defaults    1 1" >> /etc/fstab
+          touch /data/gg.txt
 
           # Send completion signal
           cfn-signal -e $? --stack ${AWS::StackId} --resource UbuntuInstance --region ${AWS::Region}

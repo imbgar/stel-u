@@ -14,6 +14,10 @@ Parameters:
       Description: 'The key to use for the instance'
       Type: String
       Default: ''
+    DataVolSnapshotId:
+      Description: 'The snapshot to be used for the instances data vol'
+      Type: String
+      Default: ''
 Resources: 
   labRole:
     Type: AWS::IAM::Role
@@ -106,6 +110,7 @@ Resources:
             Encrypted: true
             VolumeSize: 25
             VolumeType: gp2
+            SnapshotId: !Ref DataVolSnapshotId
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -xe

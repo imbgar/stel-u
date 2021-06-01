@@ -38,6 +38,10 @@ Resources:
         - !Ref labRole
   EC2Template:
     Type: AWS::EC2::LaunchTemplate
+    CreationPolicy:
+      ResourceSignal:    
+        Count: 1
+        Timeout: PT15M
     Properties:
       LaunchTemplateName: EC22012R2
       LaunchTemplateData: 
@@ -55,13 +59,16 @@ Resources:
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash -xe
-            # apt-get update -y
-            # apt-get install -y python-setuptools
-            # mkdir -p /opt/aws/bin
-            # wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-            # python -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-latest.tar.gz
-            # /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource EC2Template --configsets cw_install --region ${AWS::Region}
-            # /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource EC2Template --region ${AWS::Region}
+            # Prep
+            apt-get update -y
+            apt-get -y install python3-pip
+            pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+            
+            # Run init
+            cfn-init -v --stack ${AWS::StackId} --resource EC2Template --configsets cw_install --region ${AWS::Region}
+            
+            # Send completion signal
+            cfn-signal -e $? --stack ${AWS::StackId} --resource UbuntuInstance --region ${AWS::Region}
     Metadata:
       AWS::CloudFormation::Init: 
         configSets: 

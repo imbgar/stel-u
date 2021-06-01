@@ -14,6 +14,14 @@ Parameters:
       Description: 'The key to use for the instance'
       Type: String
       Default: ''
+    DataVolSnapshotId:
+      Description: 'The snapshot to be used for the instances data vol'
+      Type: String
+      Default: ''
+    CustomAmiId:
+      Description: 'The snapshot to be used for the instances data vol'
+      Type: String
+      Default: ''
 Resources: 
   labRole:
     Type: AWS::IAM::Role
@@ -99,29 +107,10 @@ Resources:
       LaunchTemplate: 
         LaunchTemplateId: !Ref EC2Template
         Version: !GetAtt EC2Template.LatestVersionNumber
-      ImageId: !Ref LatestUbuntuAmiId
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvdb
-          Ebs: 
-            Encrypted: true
-            VolumeSize: 25
-            VolumeType: gp2
+      ImageId: !Ref CustomAmiId
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
-          # Prep
-          apt-get update -y
-          apt-get -y install python3-pip
-          pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
-          
-          # Run init
-          cfn-init -v --stack ${AWS::StackId} --resource EC2Template --configsets cw_install --region ${AWS::Region}
-
-          # Setup EBS Volume as /data mount
-          mkdir /data
-          mount /dev/xvdb /data
-          echo "/dev/xvdb    /data   xfs    defaults    1 1" >> /etc/fstab
-
           # Send completion signal
           cfn-signal -e $? --stack ${AWS::StackId} --resource UbuntuInstance --region ${AWS::Region}
       Tags: 
