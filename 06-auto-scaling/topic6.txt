@@ -1,0 +1,286 @@
+Practice 6.1
+
+This section gets you familiar with EC2 Auto Scaling, Amazon's original scaling service and still one of its most useful. The User Guide's introduction is a great place to get familiar with the basic components.
+Lab 6.1.1: ASG from Instance
+
+In Topic 5, you created CloudFormation templates that launched EC2 instances. Let's do the simplest thing we can to create an Auto Scaling Group (ASG): ask Amazon to create one for us from a running instance.
+
+    Copy one of your templates from the EC2 lessons and modify it to launch a t2.micro Debian instance.
+
+    Launch the stack and get the instance ID.
+
+    Use the AWS CLI to create an Auto Scaling Group from that instance ID.
+
+    Limit the ASG to a single instance at all times.
+
+
+===
+aws autoscaling create-auto-scaling-group --auto-scaling-group-name bgar-stelu-lab6-1-1 --instance-id i-0a8544bd1ac500683 --min-size 1 --max-size 1 --desired-capacity 1
+===
+What was created in addition to the new Auto Scaling Group?
+
+===
+A launch configuration
+===
+
+What parameters did Amazon record in the resources it created for you?
+
+===
+Ami Id, instance type, IAM instance profile, key name, security group, userdata, block device mappings
+===
+
+Lab 6.1.2: Launch Config and ASG in CFN
+
+Modify your template to explicitly create a Launch Configuration and Auto Scaling Group. Then update the stack.
+
+    Keep all the same parameters you kept before: same instance type, same limits, etc.
+
+    Specify only the information or extra resources that you must; keep your template as simple as possible for these exercises. For example, don't add parameters to the LaunchConfiguration if they're just defaults; don't create other resources to associate with the config or ASG if the resources don't require it.
+
+Your Launch Config will look a little different than the one Amazon created for you in Lab 6.1.1.
+Question: ASG From Existing Instance
+
+What config info or resources did you have to create explicitly that Amazon created for you when launching an ASG from an existing instance?
+
+===
+Launch config with ami Id, instance type, IAM instance profile, key name, security group, userdata, block device mappings.
+
+ASG specifies subnets
+===
+
+Lab 6.1.3: Launch Config Changes
+
+Modify your launch config by increasing your instances from t2.micro to t2.small. Update your stack.
+
+After updating your stack, did your running instance get replaced or resized?
+
+===
+No! Launch config change didn't automatically apply an update
+===
+
+Terminate the instance in your ASG.
+
+Is the replacement instance the new size or the old?
+
+===
+The new size
+===
+
+Lab 6.1.4: ASG Update Policy
+
+Change the UpdatePolicy in your ASGs template so that the instance will be replaced on change, then modify your launch config again, this time changing your instance type to t2.medium. Update your stack.
+Question: Instance Updating
+
+After updating, what did you see change? Did your running instance get replaced this time?
+
+===
+The entire ASG and launch config were replaced, so yes.
+===
+
+Did the launch config change or was it replaced?
+
+===
+The update required the creation of a new physical resource; so replaced.
+===
+
+Lab 6.1.5: Launch Template
+
+Finally, replace your launch config with a Launch Template, then update your stack again. Specify only the minimum number of parameters you need to.
+
+What config info or resources do you have to provide in addition to what Launch Configurations require?
+
+===
+I didn't note anything specifically different actually. I had to create a separate template resource.
+===
+
+Lab 6.1.6: Cleanup
+
+Trace out all the resources created by your stack, and the resources associated with those. Then tear your stack down.
+
+After you tear down the stack, do all the associated resources go away? What's left?
+
+===
+All but the unmanaged launch config that was implicitly created when running aws cli command to create ASG
+===
+
+Practice 6.2
+
+By default, Auto Scaling watches VM instance health to know when to replace an instance. It can also use the health checks that load balancers monitor to know whether or not applications are healthy, but we'll cover that in a future lesson.
+Lab 6.2.1: Use awscli to Describe an ASG
+
+Use the AWS CLI for this process. As you work, compare what you see in the CLI with what you see in the console, but effect all your changes using the CLI.
+
+Re-launch your stack, then describe the resources. From that output, find the name of your ASG.
+
+Can you filter your output with "--query" to print only your ASGs resource ID? Given that name, describe your ASG. Find the Instance ID. Can you filter the output to print only the Instance ID value?
+
+===
+aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names bgar-stelu-lab6-1-4-ASGroup-1RXW514LCAJJL | jq '.AutoScalingGroups[].AutoScalingGroupARN'   
+===
+
+(You can use the --query option, but you can also use jq. Both are useful in different scenarios.)
+
+Kill that instance. Describe your ASG again. Run the awscli command repeatedly until you see the new instance launch.
+
+How long did it take for the new instance to spin up? How long before it was marked as healthy?
+
+===
+2 Minutes before healthy, 3 minutes before InService
+===
+
+Lab 6.2.2: Scale Out
+
+Watch your stack and your ASG in the web console as you do this lab.
+
+Modify your stack template to increase the desired number of instances, then update the stack.
+
+Did it work? If it didn't, what else do you have to increase?
+
+How quickly after your stack update did you see the ASG change?
+
+===
+The stack itself took 3 minutes to enter UPDATE_COMPLETE. New replacement group was healthy after just 1-2 minutes
+===
+
+Lab 6.2.3: Manual Interference
+
+Take one of your instances out of your ASG manually using the CLI. Observe Auto Scaling as it launches a replacement instance. Take note of what it does with the instance you marked unhealthy.
+
+===
+The instance was terminated
+===
+
+
+Lab 6.2.4: Troubleshooting Features
+
+Simply killing a failing server feels like an easy remedy when all your infrastructure is code and your systems are immutable. It's usually helpful to know why something failed, though, and when you have to do some debugging, the ASG system offers a few options, including placing a server on standby or suspending auto-scaling.
+
+Standby allows you to take an instance out of action without changing anything else: no new instance is created, the standby one isn't terminated, even its health check remains as it was before standby. Manually put an instance on standby using the CLI. Observe your ASG in the console and see for yourself that the health check status doesn't change and the scaled group hasn't changed. Put the instance back in action. Note the commands you used and the change to the lifecycle state of the instance after each change.
+
+===
+This places the instance on standby and reduces desired capacity as to prevent group filling
+
+aws autoscaling enter-standby --instance-ids i-059fcc28c91bbcafd --auto-scaling-group-name bgar-stelu-lab6-1-4-ASGroup-L4W3R4YXH52Q --should-decrement-desired-capacity
+
+This places it back in service
+
+aws autoscaling exit-standby --instance-ids i-059fcc28c91bbcafd --auto-scaling-group-name bgar-stelu-lab6-1-4-ASGroup-L4W3R4YXH52Q
+===
+
+Read through the Scaling Processes section in the suspending auto-scaling doc. It gives you a lot of flexibility. For example, if you have a problematic deployment, you may want to disable AddToLoadBalancer, launch a new instance by [increasing the desired size] of the ASG, and then running some tests on the live infrastructure while it's deployed to the sidelines. We're not using a load balancer right now, so we can't exercise AddToLoadBalancer, but let's take a look at another. Disable Launch, then put an instance on standby and back in action again. Note the process you have to go through, including any commands you run.
+
+===
+# Suspend Launch
+aws autoscaling suspend-processes --auto-scaling-group-name my-asg --scaling-processes Launch
+
+# Enter Standby
+aws autoscaling enter-standby --instance-ids i-059fcc28c91bbcafd --auto-scaling-group-name bgar-stelu-lab6-1-4-ASGroup-L4W3R4YXH52Q --should-decrement-desired-capacity
+
+# Exit Standby
+aws autoscaling exit-standby --instance-ids i-059fcc28c91bbcafd --auto-scaling-group-name bgar-stelu-lab6-1-4-ASGroup-L4W3R4YXH52Q
+===
+
+Retrospective 6.2
+
+How would you use AWS CloudWatch to help monitor your ASG?
+
+You can read more here about CloudWatch monitoring with ASGs.
+
+===
+Configure ASG metrics with the CLI in order to monitor ASG events and keep an eye on what the scaling mechanisms are doing.
+
+aws autoscaling enable-metrics-collection --auto-scaling-group-name bgar-stelu-lab6-1-4-ASGroup-L4W3R4YXH52Q --granularity "1Minute"
+===
+
+Practice 6.3
+
+In this lesson, we'll work with CloudWatch Alarms to scale our ASG in our out according to load. This is part of the original scaling method Amazon offered for EC2, now called [Simple Scaling Policies].
+Lab 6.3.1: Simple Scale-Out
+
+Add a CloudWatch Alarm to your template and associate it with your ASG.
+
+    Watch for CPU utilization above 60% over a period of 2 minutes and scale the group out (or "up").
+
+    Ensure that your desired number of instances is lower than your max number.
+
+Update your stack, then ssh to one of the instances. Do something that will consume a lot of CPU on that instance and let it run for 2 minutes. (For example, on Debian/Ubuntu, "apt-get install stress" and use that command to spike the load.)
+
+After the scaling interval, do you see a new instance created?
+
+===
+Yes
+===
+
+Stop the CPU-consuming process.
+
+After the load has been low for a few minutes, do you see any instances terminated?
+
+===
+No
+===
+
+Lab 6.3.2: Simple Scale-In
+
+Add another alarm, this time to allow the group to scale back in (or "down"):
+
+    Watch for CPU utilization below 40% over a period of 2 minutes and scale in.
+
+Update your stack.
+
+Do you see more instances than the configured "desired capacity"?
+
+===
+No
+===
+
+If an instance is automatically terminated, which is it, the last one created or the first?
+
+===
+The first in my case
+===
+
+Can you change your policies to alter which instance gets terminated first?
+
+===
+Yes, you can modify the termination policy of the ASG. See: https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-instance-termination.html
+===
+
+Lab 6.3.3: Target Tracking policy
+
+Replace your simple scale-out policy with the more modern [target tracking scaling policy]:
+
+    Use a predefined metric to modify CPU utilization.
+
+    Disable scaling in so that your original simple scale-in policy is the only one used to reduce the size of the group.
+
+NOTE: If you get an error from CloudFormation saying you can't modify the policy, do it in 2 separate steps: first delete your scale-out policy and update your stack, then add your target tracking policy and update your stack again.
+
+Is your resulting configuration more or less complicated than the one that uses a simple policy?
+
+===
+Less complicated
+===
+
+Consume CPU the way you did in lab 1, then stop.
+
+How long do you have to let it run before you see the group scale out?
+
+===
+2 min or so 
+===
+
+How much time passes after you stop before it scales back in?
+
+===
+2 min or so 
+===
+
+Lab 6.3.4: Target Tracking Scale-In
+
+Now eliminate your simple scale-in policy and enable scale-in on your target tracking policy. Update your stack, then consume CPU again until an instance is added.
+
+After you stop consuming CPU, how long does it take now before scale-in?
+
+===
+15 minutes 
+===

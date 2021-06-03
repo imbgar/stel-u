@@ -1,0 +1,10 @@
+[
+    {
+      "ParameterKey": "EC2KeyPairName",
+      "ParameterValue": "bgar-stelu"
+    },
+    {
+      "ParameterKey": "LatestDebianAmiId",
+      "ParameterValue": "ami-07d02ee1eeb0c996c"
+    }
+]

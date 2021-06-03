@@ -31,7 +31,7 @@ case $key in
     shift # past value
     ;;
     *)    # unknown option
-    echo "Unkown arg $1=$2"
+    echo "Unkown arg $1"
     shift # past argument
     ;;
 esac
