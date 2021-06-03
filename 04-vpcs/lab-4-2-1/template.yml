@@ -9,6 +9,10 @@ Parameters:
     Description: cidr block of the subnet
     Type: String
     Default: ''
+  Subnet2Cidr:
+    Description: cidr block of the subnet
+    Type: String
+    Default: ''
   PrivateSubnetCidr:
     Description: cidr block of the private subnet
     Type: String
@@ -38,6 +42,20 @@ Resources:
       MapPublicIpOnLaunch: true
       VpcId: !Ref VPC
       CidrBlock: !Ref SubnetCidr
+      Tags: 
+        - Key: user
+          Value: brandon.garcia.labs
+        - Key: stelligent-u-lesson
+          Value: '4.2'
+        - Key: stelligent-u-lab
+          Value: '4.2'
+  Subnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      CidrBlock: !Ref Subnet2Cidr
       Tags: 
         - Key: user
           Value: brandon.garcia.labs
@@ -118,6 +136,11 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref Subnet
+      RouteTableId: !Ref VPCRouteTable
+  RouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet2
       RouteTableId: !Ref VPCRouteTable
   ACL:
     Type: AWS::EC2::NetworkAcl
@@ -218,6 +241,11 @@ Outputs:
     Value: !Ref Subnet
     Export:
       Name: bgar-lab-subnet-id
+  Subnet2ID:
+    Description: The ID of the 2nd subnet
+    Value: !Ref Subnet2
+    Export:
+      Name: bgar-lab-subnet2-id
   PrivateSubnetID:
     Description: The ID of the subnet
     Value: !Ref PrivateSubnet

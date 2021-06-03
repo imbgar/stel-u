@@ -161,6 +161,3 @@ Resources:
       LoadBalancerArn: !Ref WebLoadBalancer
       Port: 443
       Protocol: HTTPS
-
-
-

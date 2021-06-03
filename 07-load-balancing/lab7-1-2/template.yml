@@ -146,6 +146,3 @@ Resources:
       LoadBalancerArn: !Ref WebLoadBalancer
       Port: 80
       Protocol: HTTP
-
-
-
