@@ -1,0 +1,98 @@
+Practice 7.1
+
+This section will get you familiar with the basic setup of an Application Load Balancer (ALB) and practical configurations you're likely to encounter in enterprises.
+Lab 7.1.1: ASG Basics
+
+In Topic 6, you created Auto Scaling Groups (ASGs) with a number of instances. In this lab, we'll take an ASG with instances that serve a specific web page on port 80 with HTTP and balance traffic across the many instances with an ALB.
+
+    Working from the ASG Template, associate a target group with the autoscaling group, giving it a health check on /index.html.
+        Be sure to use the Amazon Linux AMI, and not the Amazon Linux 2 AMI. If you use the Amazon Linux 2 AMI (this is untested...), you'll have to use amazon-linux-extras instead of yum and install nginx1.12 instead of nginx
+
+    Create an internet-facing ALB
+
+    Create an ALB Listener that references the previously created target group and ALB.
+
+    Update the AutoScalingGroup to use 'ELB' for HealthCheckType and 30 for HealthCheckGracePeriod
+
+    Once created, go to the endpoint associated with the Load Balancer.
+
+What is the benefit of breaking up the load balancer into specific listeners and target groups?
+
+===
+You can have more control over each protocol and what instanced are serving them
+===
+
+Lab 7.1.2: Health Checks
+
+Now, let's update our health check to see what happens when things go haywire!
+
+    Modify the target group:
+        Update the health check value to be /BADindex.html
+        Change the interval to be 20
+        Change the healthy threshold to 2
+        Change the unhealthy threshold to 3
+        Create a target group attribute with key deregistration_delay.timeout_seconds, value 20
+
+    Wait about two minutes after the stack completes.
+
+    Go to your load balancer endpoint.
+
+What can be controlled with the interval/healthy threshold/unhealthy threshold settings?
+
+===
+You can control the availability of your service by ensuring health conditions are meeting desired thresholds.
+===
+
+What's happening to the instances in the ASG? How do you know?
+
+===
+The instances are being terminated based on the status of the healthcheck. You can view this in the ASG's activities.
+===
+
+Lab 7.1.3: Secure Sockets
+
+Let's fix that bad health check endpoint and add an https listener.
+
+    First, fix your health check and verify everything is working smoothly.
+
+    Create a self-signed certificate locally
+
+    Via the aws acm CLI or AWS Certificate Manager console, import your newly created certificate, make note of its ARN.
+
+===
+aws acm import-certificate --certificate file://cert.b64 --private-key file://key.b64
+===
+
+    Add a new listener to your previously created load balancer using HTTPS on port 443 and referencing your newly uploaded certificate.
+
+    Let's be extra secure and specify a security policy on that listener which requires Forward Secrecy (has FS in its name).
+
+    Visit your ALB endpoint, add the security exception and enjoy your encrypted session.
+
+What is the trade off of going with a more secure SSL policy?
+
+===
+Less clients will be able to connect, particularly legacy systems.
+===
+
+We imported a local certificate into ACM, what other options do you have? How do those processes work?
+
+===
+You can procure a certificate from an external issuer, or use an ACM generated certificate for free. ACM Certs can't be exported as Amazon provides them for free to use within AWS. 
+
+To procure a certificate from an external issuer, you can generate a CSR, provide that to the issuer, and you'll receive back the cert/private key. You can then import those to ACM the same way you did for the self signed.
+===
+
+Lab 7.1.4: Cleanup
+
+    Load balancers are expensive so delete your stack.
+
+    Delete your imported self-signed cert.
+
+Retrospective 7.1
+
+Discuss with your mentor: What are some of the common cloud architectures where you would want to implement an ALB?
+
+===
+Web/REST/microservice application architectures would be the most common. Anything that relies on HTTP/HTTPS.
+===

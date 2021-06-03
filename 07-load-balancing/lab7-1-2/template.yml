@@ -7,10 +7,6 @@ Parameters:
       Description: 'Key pair to be used for the instance'
       Type: String
       Default: ''
-    LoadBalancerSSLCert:
-      Description: 'The certificate arn to use for https listener'
-      Type: String
-      Default: ''
 Resources:
   WebServerAutoScalingGroup:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
@@ -85,10 +81,6 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
         - IpProtocol: -1
           CidrIp: 10.0.0.0/16
         - IpProtocol: icmp
@@ -114,7 +106,7 @@ Resources:
     Properties: 
       HealthCheckEnabled: true
       HealthCheckIntervalSeconds: 20
-      HealthCheckPath: /index.html
+      HealthCheckPath: /BADindex.html
       HealthCheckPort: 80
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 15
@@ -154,15 +146,6 @@ Resources:
       LoadBalancerArn: !Ref WebLoadBalancer
       Port: 80
       Protocol: HTTP
-  SecureWebLoadBalancerListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties: 
-      Certificates:
-        - CertificateArn: !Ref LoadBalancerSSLCert
-      DefaultActions: 
-        - Type: forward
-          TargetGroupArn: !Ref WebTargetGroup
-      LoadBalancerArn: !Ref WebLoadBalancer
-      Port: 443
-      Protocol: HTTPS
-      SslPolicy: 'ELBSecurityPolicy-FS-2018-06'
+
+
+

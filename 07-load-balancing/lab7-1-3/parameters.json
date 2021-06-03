@@ -1,0 +1,9 @@
+[  {
+    "ParameterKey": "EC2KeyPairName",
+    "ParameterValue": "bgar-stelu"
+    },
+    {
+    "ParameterKey": "LoadBalancerSSLCert",
+    "ParameterValue": "arn:aws:acm:us-east-1:324320755747:certificate/35d4b98b-d7f9-4d15-be07-c2f8dc48c9a9"
+    }
+]
