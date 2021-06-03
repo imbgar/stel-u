@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+    LatestAmazonLinux2AmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+Resources:
+  WebServerAutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      LoadBalancerNames: 
+        - !GetAtt WebLoadBalancer.LoadBalancerFullName
+      VPCZoneIdentifier:
+        - !ImportValue bgar-lab-subnet-id
+      DesiredCapacity: '2'
+      HealthCheckType: 'ELB'
+      HealthCheckGracePeriod: 30 
+      LaunchConfigurationName: !Ref WebServersLaunchConfig
+      MaxSize: '3'
+      MinSize: '3'
+  WebServersLaunchConfig:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Properties:
+      ImageId: !Ref LatestAmazonLinux2AmiId
+      InstanceType: 't2.medium'
+      SecurityGroups:
+        - !Ref EC2SecurityGroup
+      UserData: 
+        Fn::Base64:
+          Fn::Sub: |
+            #!/bin/bash -xe
+
+            yum install -y aws-cfn-bootstrap
+
+            # Install the files and packages from the metadata
+            /opt/aws/bin/cfn-init -v \
+              --stack ${AWS::StackName} \
+              --resource WebServersLC \
+              --configsets All \
+              --region ${AWS::Region}
+
+            # Signal the status from cfn-init
+            /opt/aws/bin/cfn-signal -e $? \
+              --stack ${AWS::StackName} \
+              --resource WebServersLC \
+              --region ${AWS::Region}
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: bgar-stelu-l-512
+      GroupDescription: 'bgar stelu sg'
+      VpcId: !ImportValue bgar-lab-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 24.32.231.81/32
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 24.32.231.81/32
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: user
+          Value: brandon.garcia.labs
+        - Key: stelligent-u-lesson
+          Value: '7.1'
+        - Key: stelligent-u-lab
+          Value: '7.1.1'
+  WebTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 20
+      HealthCheckPath: /index.html
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 15
+      HealthyThresholdCount: 2
+      Matcher: 
+        HttpCode: 200
+      Port: 80
+      Protocol: HTTP
+      ProtocolVersion: HTTP2
+      Tags: 
+        - Key: user
+          Value: brandon.garcia.labs
+        - Key: stelligent-u-lesson
+          Value: '7.1'
+        - Key: stelligent-u-lab
+          Value: '7.1.1'
+      UnhealthyThresholdCount: 2
+      Targets:
+        - Id: !Ref WebServerAutoScalingGroup
+      VpcId: !ImportValue bgar-lab-vpc-id
+  WebLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      IpAddressType: ipv4
+      SecurityGroups: 
+        - !Ref EC2SecurityGroup
+      Subnets: 
+        - !ImportValue bgar-lab-subnet-id
+        - !ImportValue bgar-lab-subnet2-id
+      Tags: 
+        - Key: user
+          Value: brandon.garcia.labs
+        - Key: stelligent-u-lesson
+          Value: '7.1'
+        - Key: stelligent-u-lab
+          Value: '7.1.1'
+  WebLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      DefaultActions: 
+        - Type: forward
+      LoadBalancerArn: !Ref WebLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      TargetGroupArn: !Ref WebTargetGroup
+
+
+    Metadata:
+      'AWS::CloudFormation::Init':
+        configSets:
+          All:
+            - ConfigureStelligentProject
+        ConfigureStelligentProject:
+          packages:
+            yum:
+              nginx: []
+          files:
+            /usr/share/nginx/html/index.html:
+              content: '<p>Automation for the People</p>'
+              mode: '000644'
+              owner: root
+              group: root
+          services:
+            sysvinit:
+              nginx:
+                enabled: 'true'
+                ensureRunning: 'true'
