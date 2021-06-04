@@ -1,0 +1,10 @@
+[
+    {
+      "ParameterKey": "logGroupName",
+      "ParameterValue": "bgar-c9logs-lab"
+    },
+    {
+      "ParameterKey": "logBucketName",
+      "ParameterValue": "bgar-c9logs-lab"
+    }
+]
