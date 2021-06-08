@@ -1,0 +1,85 @@
+Practice 8.1
+
+This section shows you how to configure CloudWatch to monitor and store logs for AWS resources, as well as how to retrieve and review those logs using the AWS CLI and a utility called "awslogs".
+Lab 8.1.1: Log groups and streams
+
+A log group is an arbitrary collection of similar logs, using whatever definition of "similar" you want. A log stream is a uniquely identifiable flow of data into that group. Use the AWS CLI to create a log group and log stream:
+
+    Name the log group based on your username: first.last.c9logs
+
+    Name the log stream named c9.training in your log group.
+
+When you're done, list the log groups and the log streams to confirm they exist.
+
+===
+aws logs create-log-group --log-group-name brandon.garcia.c9logs
+aws logs create-log-stream --log-group-name brandon.garcia.c9logs --log-stream-name c9.training
+===
+
+Lab 8.1.3: 3rd party tool awslogs
+
+awslogs is a publicly-available Python tool that you can use to read CloudWatch logs. It's especially convenient for tailing the log streams, showing you data as it arrives.
+
+    Install the awslogs client on your running EC2 instance.
+
+    Use it to watch logs as they are put into your log group.
+
+    Use awslogs to get logs from your group from the last 5 minutes, last 20 minutes and last hour.
+
+===
+awslogs get brandon.garcia.c9logs --start='5 minutes'
+awslogs get brandon.garcia.c9logs --start='20 minutes'
+awslogs get brandon.garcia.c9logs --start='1 hour'
+===
+
+Lab 8.1.4: CloudWatch logs lifecycle
+
+Any time you're logging information, it's important to consider the lifecycle of the logs.
+
+    Use the AWS CLI to set the retention policy of your log group to 60 days.
+
+===
+aws logs put-retention-policy --log-group-name brandon.garcia.c9logs --retention-in-days 60
+===
+    Use the CLI to review the policy in your log group.
+
+===
+aws logs describe-log-groups --log-group-name-prefix brandon.garcia.c9logs
+===
+
+    Set the retention policy to the maximum allowed time, and review the change again to double-check.
+
+===
+aws logs delete-retention-policy --log-group-name brandon.garcia.c9logs
+aws logs describe-log-groups --log-group-name-prefix brandon.garcia.c9logs
+===
+
+Retrospective 8.1
+
+Log retention is an important issue that can affect many parts of a company's business. It's helpful to know what CloudWatch Log's service limitations are.
+
+    What are the minimum and maximum retention times?
+
+===
+1 to unlimited days
+===
+
+    Instead of keeping data in CW Logs forever, can you do anything else with them? What might a useful lifecycle for logs look like?
+
+===
+After a certain time maybe archive to s3
+===
+
+Retrospective 8.2
+
+What type of events might be important to track in an AWS account? If you were automating mitigating actions for the events, what might they be and what AWS resource(s) would you use?
+
+===
+Creation, deletion, and modification of resources in different environments. Maybe based off of different tag keys.
+
+Permissions and principle of least privilege should be observed first, then monitoring for certain events that you'd like to have some reporting on. Alerting can be in place for unexpected events, but shouldn't be a primary goal for your day-to-day security. Monitoring attempted actions is useful too.
+===
+
+Task
+
+Dig out the CloudFormation template you used to create the CloudTrail trail in lab 8.2.1. Add a CloudWatch event, SNS topic and SNS subscription that will email you when any changes to EC2 instances are made. Test this mechanism by creating and modifying new EC2 instances. Make sure to clean up the CloudFormation stacks and any other resources when you are done.
