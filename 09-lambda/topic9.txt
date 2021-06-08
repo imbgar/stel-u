@@ -1,0 +1,81 @@
+Practice 9.1
+Lab 9.1.1: Simple Lambda function
+
+Create and test a simple AWS Lambda function using the Lambda console.
+
+    Use the wizard to create a new Lambda using your choice of language.
+
+    Update the lambda to return "Hello AWS!" and use the "Test" tool to run a test.
+
+    Review the options you have for testing and running Lambdas.
+
+===
+You can use the console editor's test feature and view the execution result.
+
+Also awscli
+aws lambda invoke --function-name <> --payload <>
+
+Also boto3 
+https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html#Lambda.Client.invoke
+===
+
+    When you're done, delete the Lambda.
+
+Lab 9.1.3: Lambda & CloudFormation with awscli
+
+Use the AWS CLI to create Lambda functions:
+
+    Using the template you created in lab 2, move the in-line code to a separate file and update the Lambda resource to reference the handler.
+
+    Use the "aws cloudformation package" and "... deploy" commands to create the CloudFormation stack. Note: The "package" command will need an S3 bucket to temporarily store the deployment package.
+
+===
+aws cloudformation package --template-file template.yml --s3-bucket bgar-stelu-lab-912 --output-template-file gg.template
+
+aws cloudformation deploy --template-file gg.template --stack-name bgar-stelu-lab9-2-1 --capabilities CAPABILITY_IAM
+===
+
+    Use the API gateway to make a test call to the lambda to confirm it's working.
+
+===
+It works end to end with package/deploy
+===
+
+Retrospective 9.1
+Task
+
+Review other methods of creating microservices using API Gateway and Lambda such as Chalice (Python), Claudia.js (Node) and Aegis (Go). Understand how you can use AWS SAM to test and deploy Lambdas.
+
+===
+
+Read this to understand Chalice: https://medium.com/swlh/getting-started-with-chalice-to-create-aws-lambdas-in-python-step-by-step-tutorial-3ccf01701259
+
+Read this to understand Aegis: https://serifandsemaphore.io/aws-lambda-geoip-golang-microservice-with-aegis-91bae736c1b2
+
+https://serifandsemaphore.io/a-cognito-protected-serverless-api-with-golang-in-minutes-a054c9f50cf3
+
+Read this to understand Caluda.js:
+https://medium.com/@johndyer24/simple-steps-to-deploy-an-express-server-to-aws-lambda-with-claudia-js-26c25f8745b5
+
+
+Read this to understand AWS SAM: https://medium.com/avmconsulting-blog/how-to-build-your-first-serverless-api-with-awss-serverless-application-module-and-ci-cd-8ac67cbd8862
+
+https://medium.com/spaceapetech/developing-applications-with-aws-sam-295c320d563c
+===
+
+Practice 9.2
+Lab 9.2.1: Lambda with DynamoDB
+
+As a simple example, let's extend your Lambda function to write data to a table in DynamoDB:
+
+    Start with the template and code you created in lab 2
+
+    Add a DynamoDB table with several attributes of your choice
+
+    Update the Lambda code to take input based on the attributes and insert new items into the DynamoDB table.
+
+Test the code using an API call as you've done before. Confirm that the call is inserting the item in the table.
+
+===
+It worked!
+===
