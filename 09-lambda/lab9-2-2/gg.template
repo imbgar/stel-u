@@ -1,30 +1,51 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Creates lambda resources for Stelligent-U Topic 9: Lab 9-1-2'
+Description: 'Creates log resources for Stelligent-U Topic 8: Lab 9.2.1'
+Parameters:
+  LogGroupName:
+    Description: The name of the log group
+    Type: String
+    Default: ''
+  LogBucketName:
+    Description: The name of the log group
+    Type: String
+    Default: ''
+  DataBucketName:
+    Description: The name of the log group
+    Type: String
+    Default: ''
 Resources:
-  DynamoDBTable:
-    Type: AWS::DynamoDB::Table
+  LogGroup:
+    Type: AWS::Logs::LogGroup
     Properties:
-      AttributeDefinitions:
-      - AttributeName: movie_id
-        AttributeType: S
-      - AttributeName: genre
-        AttributeType: S
-      KeySchema:
-      - AttributeName: movie_id
-        KeyType: HASH
-      - AttributeName: genre
-        KeyType: RANGE
-      TableName: bgar-Movies
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+      RetentionInDays: 60
+      LogGroupName:
+        Ref: LogGroupName
+  LogBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketName:
+        Ref: LogBucketName
       Tags:
       - Key: user
         Value: brandon.garcia.labs
       - Key: stelligent-u-lesson
-        Value: '9.1'
+        Value: '9.2'
       - Key: stelligent-u-lab
-        Value: 9.1.2
+        Value: 9.2.1
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketName:
+        Ref: DataBucketName
+      Tags:
+      - Key: user
+        Value: brandon.garcia.labs
+      - Key: stelligent-u-lesson
+        Value: '9.2'
+      - Key: stelligent-u-lab
+        Value: 9.2.1
   LambdaIamRole:
     Type: AWS::IAM::Role
     Properties:
@@ -35,27 +56,15 @@ Resources:
           Principal:
             Service:
             - lambda.amazonaws.com
+            - events.amazonaws.com
           Action:
           - sts:AssumeRole
-      Policies:
-      - PolicyName: AllowBasicLambda
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - logs:CreateLogGroup
-            Resource: arn:aws:logs:us-east-1:324320755747:*
-          - Effect: Allow
-            Action:
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Resource: arn:aws:logs:us-east-1:324320755747:log-group:/aws/lambda/bgar-lab-9-1-1-manual:*
   LambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: bgar-stelu-lab-912
+        S3Bucket:
+          Ref: DataBucket
         S3Key: code.zip
       Description: bgar-stelu-lab9-1-1
       FunctionName: bgar-stelu-lab9-1-1
@@ -65,135 +74,126 @@ Resources:
         Fn::GetAtt:
         - LambdaIamRole
         - Arn
-  LambdaPermission:
-    Type: AWS::Lambda::Permission
+  TrailBucketPolicy:
+    Type: AWS::S3::BucketPolicy
     Properties:
-      Action: lambda:InvokeFunction
-      FunctionName:
-        Fn::GetAtt:
-        - LambdaFunction
-        - Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn:
-        Fn::Join:
-        - ''
-        - - 'arn:aws:execute-api:'
-          - Ref: AWS::Region
-          - ':'
-          - Ref: AWS::AccountId
-          - ':'
-          - Ref: ApiGatewayRestApi
-          - /*
-  ApiGatewayRestApi:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      Name: bgar-restapi-lab911
-      Description: Test API for bgar-lab-911
-      FailOnWarnings: true
-  ApiGatewayLogRole:
+      Bucket:
+        Ref: LogBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: AWSCloudTrailAclCheck
+          Effect: Allow
+          Principal:
+            Service: cloudtrail.amazonaws.com
+          Action: s3:GetBucketAcl
+          Resource:
+            Fn::Sub: arn:aws:s3:::${LogBucketName}
+        - Sid: AWSCloudTrailWrite
+          Effect: Allow
+          Principal:
+            Service: cloudtrail.amazonaws.com
+          Action: s3:PutObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::${LogBucketName}/logs/*
+  LogRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
         - Effect: Allow
           Principal:
             Service:
-            - apigateway.amazonaws.com
-          Action: sts:AssumeRole
-      Path: /
-      ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
-  ApiGatewayAccount:
-    Type: AWS::ApiGateway::Account
+            - cloudtrail.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: CloudTrailPut
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: logs:CreateLogStream
+            Resource: '*'
+          - Effect: Allow
+            Action: logs:PutLogEvents
+            Resource: '*'
+      - PolicyName: SNSPut
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: sns:*
+            Resource: '*'
+  cloudTrail:
+    Type: AWS::CloudTrail::Trail
+    DependsOn: TrailBucketPolicy
     Properties:
-      CloudWatchRoleArn:
+      S3BucketName:
+        Ref: LogBucket
+      CloudWatchLogsLogGroupArn:
         Fn::GetAtt:
-        - ApiGatewayLogRole
+        - LogGroup
         - Arn
-  ApiGatewayStage:
-    DependsOn: ApiGatewayAccount
-    Type: AWS::ApiGateway::Stage
-    Properties:
-      DeploymentId:
-        Ref: ApiGatewayDeployment
-      MethodSettings:
-      - DataTraceEnabled: true
-        HttpMethod: '*'
-        LoggingLevel: INFO
-        ResourcePath: /*
-      RestApiId:
-        Ref: ApiGatewayRestApi
-      StageName: LATEST
-      Tags:
-      - Key: user
-        Value: brandon.garcia.labs
-      - Key: stelligent-u-lesson
-        Value: '9.1'
-      - Key: stelligent-u-lab
-        Value: 9.1.1
-  ApiGatewayMethod:
-    DependsOn: LambdaPermission
-    Type: AWS::ApiGateway::Method
-    Properties:
-      AuthorizationType: NONE
-      HttpMethod: ANY
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri:
-          Fn::Join:
-          - ''
-          - - 'arn:aws:apigateway:'
-            - Ref: AWS::Region
-            - :lambda:path/2015-03-31/functions/
-            - Fn::GetAtt:
-              - LambdaFunction
-              - Arn
-            - /invocations
-        IntegrationResponses:
-        - StatusCode: 200
-      ResourceId:
-        Ref: ApiGatewayResource
-      RestApiId:
-        Ref: ApiGatewayRestApi
-      MethodResponses:
-      - StatusCode: 200
-  ApiGatewayDeployment:
-    DependsOn: ApiGatewayMethod
-    Type: AWS::ApiGateway::Deployment
-    Properties:
-      RestApiId:
-        Ref: ApiGatewayRestApi
-      StageName: TestStage
-  ApiGatewayResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId:
+      CloudWatchLogsRoleArn:
         Fn::GetAtt:
-        - ApiGatewayRestApi
-        - RootResourceId
-      PathPart: test
-      RestApiId:
-        Ref: ApiGatewayRestApi
+        - LogRole
+        - Arn
+      IncludeGlobalServiceEvents: false
+      IsLogging: true
+      S3KeyPrefix: logs
+      EventSelectors:
+      - DataResources:
+        - Type: AWS::S3::Object
+          Values:
+          - Fn::Sub: arn:aws:s3:::${DataBucket}/
+        IncludeManagementEvents: false
+        ReadWriteType: All
+  S3PutTrigger:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+        - aws.s3
+        detail-type:
+        - AWS API Call via CloudTrail
+        detail:
+          eventSource:
+          - s3.amazonaws.com
+          eventName:
+          - PutObject
+        requestParameters:
+          bucketName:
+          - Ref: DataBucket
+      State: ENABLED
+      Targets:
+      - Arn:
+          Fn::GetAtt:
+          - LambdaFunction
+          - Arn
+        Id: ddb_logger
+  EventsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Ref: LambdaFunction
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+        - S3PutTrigger
+        - Arn
 Outputs:
-  ApiGatewayRestApi:
-    Description: The RestAPI
+  LogBucket:
+    Description: The log bucket
     Value:
-      Ref: ApiGatewayRestApi
-  ApiGatewayResource:
-    Description: The api gateway resource
+      Ref: LogBucket
+  DataBucket:
+    Description: The data bucket
     Value:
-      Ref: ApiGatewayResource
-  ApiGatewayLogRole:
-    Description: The api gateway log role
+      Ref: DataBucket
+  LogGroup:
+    Description: The log group
     Value:
-      Ref: ApiGatewayLogRole
-  LambdaFunction:
-    Description: The lambda function
-    Value:
-      Ref: LambdaFunction
-  LambdaIamRole:
-    Description: The lambda function execution role
-    Value:
-      Ref: LambdaIamRole
+      Ref: LogGroup

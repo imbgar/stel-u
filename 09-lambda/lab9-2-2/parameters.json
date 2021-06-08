@@ -1,1 +1,14 @@
-[]
+[
+    {
+        "ParameterKey": "LogGroupName",
+        "ParameterValue": "bgar-c9logs-lab"
+    },
+    {
+        "ParameterKey": "LogBucketName",
+        "ParameterValue": "bgar-c9logs"
+    },
+    {
+        "ParameterKey": "DataBucketName",
+        "ParameterValue": "bgar-data-lab"
+    }
+]
