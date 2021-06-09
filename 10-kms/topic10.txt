@@ -1,0 +1,54 @@
+Practice 10.1
+
+Rather than storing the encryption keys ourselves, Amazon securely stores them and provides the ability to disperse and use keys to others via IAM. The following labs will introduce you to the fundamental resources in KMS: KMS Customer Master Keys (CMKs) and KMS Aliases.
+Lab 10.1.1: Create a KMS CMK
+
+Create a CFN Template that creates a CMK key in KMS:
+
+    For a key policy, set your IAM user as Key Administrator and as a Key User
+
+Lab 10.1.2 : Create a KMS Alias
+
+Update your CFN template to add a KMS Alias with a snazzy name. Associate your CMK with this alias.
+Lab 10.1.3: Encrypt a text file with your KMS CMK
+
+Use the AWS KMS CLI to encrypt a plaintext file with a secret message (maybe that combo to the safe, or your luggage password). Send your file to a colleague with administrator access.
+Lab 10.1.4: Decrypt a ciphertext file
+
+===
+aws kms encrypt --key-id 5ae98339-74f5-422f-a61e-2f53a83c9a7c --plaintext fileb://secret.txt --query CiphertextBlob > ExampleEncryptedFile.b64
+===
+
+Use the KMS CLI to now decrypt a ciphertext file.
+
+===
+aws kms decrypt --ciphertext-blob file://ExampleEncryptedFile.b64 --key-id 5ae98339-74f5-422f-a61e-2f53a83c9a7c --query Plaintext --output text | base64 -d
+===
+
+Retrospective 10.1
+
+For decrypting the ciphertext file, why didn't you have to specify a key? How did you have permission to decrypt?
+
+===
+AWS KMS adds metadata to the blob that allow it to later retrieve the symmetric CMK used to encrypt the blob.
+===
+
+Why is it beneficial to use a KMS Alias?
+
+===
+Aliases make it easier to recognize the key in console, etc. You can use the alias in policies. You can reference the alias and change the underlying key without making code updates.
+===
+
+Lab 10.2.2: Delete your CMK
+
+Delete your KMS CFN Stack.
+
+What happened to your CMK? Why?
+
+===
+It was deleted, because it was created in the stack and no deletionpolicy was specified
+===
+
+Retrospective 10.2
+
+Check out the code for stelligent/crossing and stelligent/keystore on GitHub for tools that simplify using KMS encrypted resources.
