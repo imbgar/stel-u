@@ -30,9 +30,9 @@ Use the AWS CLI to create Lambda functions:
     Use the "aws cloudformation package" and "... deploy" commands to create the CloudFormation stack. Note: The "package" command will need an S3 bucket to temporarily store the deployment package.
 
 ===
-aws cloudformation package --template-file template.yml --s3-bucket bgar-stelu-lab-912 --output-template-file gg.template
+aws cloudformation package --template-file template.yml --s3-bucket bgar-data-lab --output-template-file gg.template
 
-aws cloudformation deploy --template-file gg.template --stack-name bgar-stelu-lab9-2-1 --capabilities CAPABILITY_IAM
+aws cloudformation deploy --template-file gg.template --stack-name bgar-stelu-lab9-2-2 --capabilities CAPABILITY_IAM
 ===
 
     Use the API gateway to make a test call to the lambda to confirm it's working.

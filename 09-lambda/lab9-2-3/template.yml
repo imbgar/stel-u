@@ -1,20 +1,29 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Creates lambda resources for Stelligent-U Topic 9: Lab 9-1-2'
+Description: 'Creates log resources for Stelligent-U Topic 8: Lab 9.2.1'
+Parameters: 
+  DataBucketName:
+    Description: 'The name of the data bucket'
+    Type: String
+    Default: ''
+  DDBTableName:
+    Description: 'The name of the dynamodb table'
+    Type: String
+    Default: 'bgar-log-data'
 Resources: 
   DynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: movie_id
+        - AttributeName: event_source
           AttributeType: S
-        - AttributeName: genre
-          AttributeType: S 
+        - AttributeName: event_region
+          AttributeType: S
       KeySchema:
-        - AttributeName: movie_id
+        - AttributeName: event_source
           KeyType: HASH
-        - AttributeName: genre
+        - AttributeName: event_region
           KeyType: RANGE
-      TableName: bgar-Movies
+      TableName: !Ref DDBTableName
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
@@ -35,26 +44,20 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
+                - events.amazonaws.com
             Action:
               - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
-        - PolicyName: AllowBasicLambda
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 'logs:CreateLogGroup'
-                Resource: "arn:aws:logs:us-east-1:324320755747:*"
-              - Effect: Allow
-                Action: 
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: arn:aws:logs:us-east-1:324320755747:log-group:/aws/lambda/bgar-lab-9-1-1-manual:*
-              - Effect: Allow
-                Action: 
-                  - dynamodb:*
-                Resource: "*"
+      - PolicyName: AllowBasicLambda
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 
+                - dynamodb:*
+              Resource: "*"
   LambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -62,6 +65,7 @@ Resources:
         ZipFile: |
           import json
           import boto3
+          from boto3.dynamodb.conditions import Key
 
           def lambda_handler(event, context):
 
@@ -69,23 +73,20 @@ Resources:
 
               dynamodb = boto3.resource('dynamodb')
 
-              table = dynamodb.Table('bgar-Movies')
+              table = dynamodb.Table('bgar-log-data')
 
-              print(f"Writing item with: {data}")
-              response = table.put_item(
-                  Item={
-                      'movie_id': data["movie_id"],
-                      'genre': data["genre"],
-                      'rating': data["rating"]
-                  }
-              )
+              print(f"Getting item with filter: {data}")
+
+              response = table.query(
+                  KeyConditionExpression=Key('event_source').eq(data["event_source"]))["Items"]
 
               response = {'statusCode': 200,
               'body': json.dumps(response)}
 
               return response
-      Description: bgar-stelu-lab9-1-1
-      FunctionName: bgar-stelu-lab9-1-1
+
+      Description: bgar-stelu-lab9-2-3
+      FunctionName: bgar-stelu-lab9-2-3
       Runtime: python3.8
       Handler: index.lambda_handler
       Role: !GetAtt LambdaIamRole.Arn
@@ -169,18 +170,6 @@ Resources:
       PathPart: test
       RestApiId: !Ref ApiGatewayRestApi
 Outputs:
-  ApiGatewayRestApi:
-    Description: The RestAPI
-    Value: !Ref ApiGatewayRestApi
-  ApiGatewayResource:
-    Description: The api gateway resource
-    Value: !Ref ApiGatewayResource
-  ApiGatewayLogRole:
-    Description: The api gateway log role
-    Value: !Ref ApiGatewayLogRole
-  LambdaFunction:
-    Description: The lambda function
-    Value: !Ref LambdaFunction
-  LambdaIamRole:
-    Description: The lambda function execution role
-    Value: !Ref LambdaIamRole
+  DataBucket:
+    Description: The data bucket
+    Value: !Ref DataBucketName

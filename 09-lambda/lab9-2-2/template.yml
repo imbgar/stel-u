@@ -6,15 +6,15 @@ Parameters:
     Type: String
     Default: ''
   LogBucketName:
-    Description: 'The name of the log group'
+    Description: 'The name of the log bucket'
     Type: String
     Default: ''
   DataBucketName:
-    Description: 'The name of the log group'
+    Description: 'The name of the data bucket'
     Type: String
     Default: ''
   DDBTableName:
-    Description: 'The name of the log group'
+    Description: 'The name of the dynamodb table'
     Type: String
     Default: 'bgar-log-data'
 Resources: 
@@ -72,6 +72,17 @@ Resources:
                 - events.amazonaws.com
             Action:
               - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: AllowBasicLambda
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 
+                - dynamodb:*
+              Resource: "*"
   LambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -162,9 +173,9 @@ Resources:
             - s3.amazonaws.com
           eventName: 
             - PutObject
-        requestParameters:
-          bucketName: 
-            - !Ref DataBucketName
+          requestParameters:
+            bucketName: 
+              - !Ref DataBucketName
       State: ENABLED
       Targets:
       - Arn: !GetAtt LambdaFunction.Arn
@@ -176,6 +187,78 @@ Resources:
         FunctionName: !Ref LambdaFunction
         Principal: events.amazonaws.com
         SourceArn: !GetAtt S3PutTrigger.Arn
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties: 
+      Name: bgar-restapi-lab911
+      Description: Test API for bgar-lab-911
+      FailOnWarnings: true
+  ApiGatewayLogRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - >-
+          arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+  ApiGatewayAccount:
+    Type: 'AWS::ApiGateway::Account'
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayLogRole.Arn
+  ApiGatewayStage:
+    DependsOn: ApiGatewayAccount
+    Type: AWS::ApiGateway::Stage
+    Properties: 
+      DeploymentId: !Ref ApiGatewayDeployment
+      MethodSettings: 
+        - DataTraceEnabled: true
+          HttpMethod: "*"
+          LoggingLevel: "INFO"
+          ResourcePath: "/*"
+      RestApiId: !Ref ApiGatewayRestApi
+      StageName: "LATEST"
+      Tags: 
+        - Key: user
+          Value: brandon.garcia.labs
+        - Key: stelligent-u-lesson
+          Value: '9.1'
+        - Key: stelligent-u-lab
+          Value: '9.1.1'
+  ApiGatewayMethod:
+    DependsOn: LambdaPermission
+    Type: AWS::ApiGateway::Method
+    Properties: 
+      AuthorizationType: NONE
+      HttpMethod: ANY
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Join ["", ["arn:aws:apigateway:", !Ref AWS::Region, ":lambda:path/2015-03-31/functions/", !GetAtt LambdaFunction.Arn, "/invocations"]]
+        IntegrationResponses:
+          - StatusCode: 200
+      ResourceId: !Ref ApiGatewayResource
+      RestApiId: !Ref ApiGatewayRestApi
+      MethodResponses:
+        - StatusCode: 200
+  ApiGatewayDeployment:
+    DependsOn: ApiGatewayMethod
+    Type: AWS::ApiGateway::Deployment
+    Properties: 
+      RestApiId: !Ref ApiGatewayRestApi
+      StageName: TestStage
+  ApiGatewayResource:
+    Type: AWS::ApiGateway::Resource
+    Properties: 
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: test
+      RestApiId: !Ref ApiGatewayRestApi
 Outputs:
   LogBucket:
     Description: The log bucket
