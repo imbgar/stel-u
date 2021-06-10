@@ -1,0 +1,6 @@
+[
+    {
+        "ParameterKey": "DataBucketName",
+        "ParameterValue": "bgar-data-lab"
+    }
+]

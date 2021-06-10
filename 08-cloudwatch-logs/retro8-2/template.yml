@@ -85,7 +85,7 @@ Resources:
       CloudWatchLogsRoleArn: !GetAtt labLogRole.Arn
       IncludeGlobalServiceEvents: true
       IsLogging: true
-      S3KeyPrefix: logs/
+      S3KeyPrefix: logs
   SnsTopicMetricFilterCloudWatchAlarm:
     Type: "AWS::SNS::Topic"
     Properties:
