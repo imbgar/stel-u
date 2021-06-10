@@ -1,0 +1,63 @@
+Lab 11.1.2: Reading data
+
+Look at ways to read your parameter data.
+
+    You can look it up in the console
+
+    You can read it with the API using GetParameter, GetParameters and GetParametersByPath
+
+    You can invoke those same API queries through the aws ssm CLI
+
+Use all 3 methods to read your parameters individually and to fetch the entire subtree with a single query.
+
+===
+If I were to do this in python:
+https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ssm.html#SSM.Client.get_parameter
+
+https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ssm.html#SSM.Client.get_parameters
+
+aws ssm get-parameters-by-path --path /brandon-blah/
+===
+
+When you look at your stack in the CloudFormation console, can you find the values of your parameter resources there?
+
+===
+You can if you output !GetAtt Param.Value
+===
+
+Lab 11.1.4: Secure Strings
+
+One of the features that makes Parameter Store so compelling is the way it easily lets you store secrets. When you set a key to a value, you simply reference a KMS key and mark the value as a secret. Anybody with access to the key can read it. As we said above, the simplicity of this service is part of what makes it so powerful.
+
+Store the engineer's middle name as a secret, then reference it in your stack from lab 1.
+
+First, use the awscli to store the middle name of an engineer in the hierarchy you created earlier.
+
+    The middle name should be a Secure String.
+
+    Store the info under the key "middle-name" within the given engineer's hierarchy.
+
+    "middle-name" should be encrypted with a KMS key, generating a new one if you have to.
+
+Then, in your template, look up the value of "middle-name" and add it to the web page served by nginx.
+
+===
+aws kms create-key --description "bgar lab 11.1.4 test key"
+aws ssm put-parameter --name /brandon-blah/middle-name --type SecureString --value $MIDDLE_NAME --key-id $KEY_ID
+===
+
+Retrospective 11.1
+
+Read Using Dynamic References to Specify Template Values. Why can't you use that feature directly to read "middle-name" and show it in your web page?
+
+===
+Because only certain resources support the dynamic reference, and CFN metadata is not one of them.
+
+See: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references.html#dynamic-references-ssm-secure-strings
+===
+
+Can you use Secure String as an AWS::SSM::Parameter::Value type in a CloudFormation stack?
+
+===
+No
+===

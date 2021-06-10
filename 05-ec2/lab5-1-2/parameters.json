@@ -3,6 +3,4 @@
       "ParameterKey": "EC2KeyPairName",
       "ParameterValue": "bgar-stelu"
     }
-
-    
 ]

@@ -1,0 +1,37 @@
+[  {
+        "ParameterKey": "EC2KeyPairName",
+        "ParameterValue": "bgar-stelu"
+    },
+    {
+        "ParameterKey": "SSMKeyPath",
+        "ParameterValue": "/brandon-blah/name"
+    },
+    {
+        "ParameterKey": "EngineerName",
+        "ParameterValue": "/brandon-blah/name"
+    },
+    {
+        "ParameterKey": "EngineerTitle",
+        "ParameterValue": "/brandon-blah/title"
+    },
+    {
+        "ParameterKey": "EngineerAddress",
+        "ParameterValue": "/brandon-blah/address"
+    },
+    {
+        "ParameterKey": "EngineerTeamName",
+        "ParameterValue": "/brandon-blah/team"
+    },
+    {
+        "ParameterKey": "EngineerTimezone",
+        "ParameterValue": "/brandon-blah/timezone"
+    },
+    {
+        "ParameterKey": "EngineerStateCode",
+        "ParameterValue": "/brandon-blah/state"
+    },
+    {
+        "ParameterKey": "EngineerStartDate",
+        "ParameterValue": "/brandon-blah/start-date"
+    }
+]
