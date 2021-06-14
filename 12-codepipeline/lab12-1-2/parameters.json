@@ -9,10 +9,14 @@
     },
     {
         "ParameterKey": "Branch",
-        "ParameterValue": "master"
+        "ParameterValue": "topic12"
     },
     {
         "ParameterKey": "RepositoryName",
         "ParameterValue": "stel-u"
+    },
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "bgat-stelu-lab12-1-2"
     }
 ]
