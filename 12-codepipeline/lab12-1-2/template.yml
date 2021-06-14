@@ -123,7 +123,7 @@ Resources:
               InputArtifacts: 
                 - Name: LabSource
               Configuration:
-                ParameterOverrides: '{"BucketNameParameter": "bgar-child-bucket-pipeline"}'
+                ParameterOverrides: '{"BucketName": "bgar-child-bucket-pipeline"}'
                 ActionMode: CREATE_UPDATE
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: bgar-pipeline-12-1-1
