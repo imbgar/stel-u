@@ -1,0 +1,15 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+        ruby: 2.6    
+    commands:
+    - pip3 install awscli --upgrade --quiet
+    - pip3 install cfn-lint --quiet              
+    - apt-get install jq git -y -q
+    - gem install cfn-nag
+  build:
+    commands:
+    - cd ./12-codepipeline/lab12-1-2
+    - cfn-lint template.yml
+    - cfn_nag_scan -i template.yml
