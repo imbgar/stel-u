@@ -152,7 +152,7 @@ Resources:
                   - pip3 install awscli --upgrade --quiet
               build:
                 commands:
-                  - aws cloudformation validate-template --template-body ./12-codepipeline/lab12-1-2/template.yml
+                  - aws cloudformation validate-template --template-body file://./12-codepipeline/lab12-1-2/template.yml
 ######
 ######
 Outputs:
