@@ -127,7 +127,7 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: bgar-pipeline-12-1-1
-                TemplatePath: LabSource::12-codepipeline/lab12-1-2/bucket.yaml
+                TemplatePath: LabSource::bucket.yaml
       RestartExecutionOnUpdate: false
   BuildProject:
     Type: AWS::CodeBuild::Project
