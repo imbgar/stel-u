@@ -153,7 +153,6 @@ Resources:
               build:
                 commands:
                   - aws cloudformation validate-template --template-body ./12-codepipeline/lab12-1-2/template.yml
-          TimeoutInMinutes: 15
 ######
 ######
 Outputs:
