@@ -39,6 +39,10 @@ Parameters:
     Description:  The location of the template file within the artifact
     Type: String
     Default: ''
+  ChildStackFileLocation:
+    Description:  The location of the template file within the artifact
+    Type: String
+    Default: ''
 ######
 ######
 Resources: 
@@ -148,7 +152,7 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: !Ref ChildStackName
-                TemplatePath: LabSource::12-codepipeline/bucket.yml
+                TemplatePath: !Sub LabSource::${ChildStackFileLocation}
         - Name: test
           Actions:
             - Name: TestStack

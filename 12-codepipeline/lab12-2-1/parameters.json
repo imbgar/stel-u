@@ -29,7 +29,11 @@
     },
     {
         "ParameterKey": "TemplateFileLocation",
-        "ParameterValue": "./12-codepipeline/lab12-1-2/template.yml"
+        "ParameterValue": "./12-codepipeline/lab12-2-1/template.yml"
+    },
+    {
+        "ParameterKey": "ChildStackFileLocation",
+        "ParameterValue": "12-codepipeline/lab12-2-1/child.yml"
     },
     {
         "ParameterKey": "ChildStackName",

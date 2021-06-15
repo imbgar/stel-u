@@ -1,0 +1,25 @@
+Retrospective 12.1
+
+Is executing a CloudFormation template a legitimate example of an "application"? Provide an explanation.
+
+===
+I think it depends on what the cloudformation template contains. You can be deploying either raw infrastructure alone or some packaged code along with it, such as some AMI deployed in an auto-scaling group. You can look at the infrastructure as an application, but I think most people would think of an "application" as the raw infrastructure + the code that will be in service.
+===
+
+Is your Pipeline template portable? Update and re-create your Pipeline if you hard-coded any of the following:
+
+    the name of the 'application' stack
+
+    the repository name, the branch to track, or personal access token
+
+    the S3 bucket name
+
+    anything else that might enhance portability
+
+Task
+
+Delete your pipeline stack and leave your bucket stack alone. Once the pipeline stack is gone try to delete the bucket stack. What happens? You likely won't be able to delete it because of missing roles. The order you delete stacks and which stack your define resources in can become a dependency web. To delete your bucket stack you can recreate your pipeline stack and use the created roles to recreate the missing role for your orphaned bucket stack. To help avoid this in the future it's a good idea to define your roles in a separate stack and use the outputs in your other stacks.
+
+===
+After deleting the pipeline stack I'm unable to delete the bucket stack due to the missing role. I was able to successfully delete it after recreating the pipeline stack with a hard-coded role name.
+===
