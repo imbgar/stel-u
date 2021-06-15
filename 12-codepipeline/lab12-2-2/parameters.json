@@ -1,7 +1,7 @@
 [
     {
     "ParameterKey": "BucketName",
-    "ParameterValue": "bgar-lab-12-1-1"
+    "ParameterValue": "bgar-lab-12-2-2"
     },
     {
         "ParameterKey": "ChildBucketName",
@@ -21,22 +21,30 @@
     },
     {
         "ParameterKey": "ValidateProjectName",
-        "ParameterValue": "bgat-stelu-lab12-1-2-validate"
+        "ParameterValue": "bgat-stelu-lab12-2-2-validate"
     },
     {
         "ParameterKey": "TestProjectName",
-        "ParameterValue": "bgat-stelu-lab12-1-2-test"
+        "ParameterValue": "bgat-stelu-lab12-2-2-test"
     },
     {
         "ParameterKey": "TemplateFileLocation",
-        "ParameterValue": "./12-codepipeline/lab12-2-1/template.yml"
+        "ParameterValue": "./12-codepipeline/lab12-2-2/template.yml"
     },
     {
         "ParameterKey": "ChildStackFileLocation",
-        "ParameterValue": "12-codepipeline/lab12-2-1/child.yml"
+        "ParameterValue": "12-codepipeline/lab12-2-2/child.yml"
     },
     {
         "ParameterKey": "ChildStackName",
         "ParameterValue": "bgar-lab-pipeline-stack"
+    },
+    {
+        "ParameterKey": "ChildDDBTableName",
+        "ParameterValue": "bgar-ddb-table"
+    },
+    {
+        "ParameterKey": "ChildApplicationRoleName",
+        "ParameterValue": "bgar-lab-app-role"
     }
 ]

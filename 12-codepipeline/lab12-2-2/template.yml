@@ -43,6 +43,10 @@ Parameters:
     Description:  The location of the template file within the artifact
     Type: String
     Default: ''
+  ChildStackTemplateConfigurationFileLocation:
+    Description:  The name of the application role to be created in the child pipeline
+    Type: String
+    Default: ''
 ######
 ######
 Resources: 
@@ -125,21 +129,9 @@ Resources:
                 Branch: !Ref Branch
                 OAuthToken: "{{resolve:secretsmanager:bgar-gh-token:SecretString:::7de73ed0-8301-4895-99b0-b6dda7da39d9}}"
                 PollForSourceChanges: true
-        - Name: build
-          Actions:
-            - Name: Validation
-              ActionTypeId: 
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              InputArtifacts: 
-                - Name: LabSource
-              Configuration: 
-                ProjectName: !Ref ValidateProjectName
         - Name: deploy
           Actions:
-            - Name: CreateStack
+            - Name: CreateChangeSet
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -148,23 +140,27 @@ Resources:
               InputArtifacts: 
                 - Name: LabSource
               Configuration:
-                ParameterOverrides: !Sub '{"BucketName": "${ChildBucketName}"}'
-                ActionMode: CREATE_UPDATE
+                TemplateConfiguration: !Sub LabSource::${ChildStackTemplateConfigurationFileLocation}
+                ActionMode: CHANGE_SET_REPLACE
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: !Ref ChildStackName
                 TemplatePath: !Sub LabSource::${ChildStackFileLocation}
-        - Name: test
-          Actions:
-            - Name: TestStack
-              ActionTypeId: 
-                Category: Build
+                ChangeSetName: lab-change-set
+            - Name: ExecuteChangeSet
+              ActionTypeId:
+                Category: Deploy
                 Owner: AWS
-                Provider: CodeBuild
+                Provider: CloudFormation
                 Version: 1
               InputArtifacts: 
                 - Name: LabSource
-              Configuration: 
-                ProjectName: !Ref TestProjectName
+              Configuration:
+                TemplateConfiguration: !Sub LabSource::${ChildStackTemplateConfigurationFileLocation}
+                ActionMode: CHANGE_SET_EXECUTE
+                RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                StackName: !Ref ChildStackName
+                TemplatePath: !Sub LabSource::${ChildStackFileLocation}
+                ChangeSetName: lab-change-set
       RestartExecutionOnUpdate: false
   ValidateBuildProject:
     Type: AWS::CodeBuild::Project

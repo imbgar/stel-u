@@ -32,6 +32,10 @@
         "ParameterValue": "./12-codepipeline/lab12-1-2/template.yml"
     },
     {
+        "ParameterKey": "ChildStackFileLocation",
+        "ParameterValue": "12-codepipeline/bucket.yml"
+    },
+    {
         "ParameterKey": "ChildStackName",
         "ParameterValue": "bgar-lab-pipeline-stack"
     }
