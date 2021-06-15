@@ -92,6 +92,7 @@ Resources:
   CloudFormationExecutionRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: bgar-stelu-lab12-2-2-CloudFormationExecutionRole-27E9YI21BMOI
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -103,6 +104,8 @@ Resources:
               - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/IAMFullAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -140,13 +143,22 @@ Resources:
               InputArtifacts: 
                 - Name: LabSource
               Configuration:
+                Capabilities: CAPABILITY_NAMED_IAM
                 TemplateConfiguration: !Sub LabSource::${ChildStackTemplateConfigurationFileLocation}
                 ActionMode: CHANGE_SET_REPLACE
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 StackName: !Ref ChildStackName
                 TemplatePath: !Sub LabSource::${ChildStackFileLocation}
                 ChangeSetName: lab-change-set
+            - Name: ManualApproval
+              RunOrder: 1
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: 1
             - Name: ExecuteChangeSet
+              RunOrder: 2
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -155,6 +167,7 @@ Resources:
               InputArtifacts: 
                 - Name: LabSource
               Configuration:
+                Capabilities: CAPABILITY_NAMED_IAM
                 TemplateConfiguration: !Sub LabSource::${ChildStackTemplateConfigurationFileLocation}
                 ActionMode: CHANGE_SET_EXECUTE
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn

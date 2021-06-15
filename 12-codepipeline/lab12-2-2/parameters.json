@@ -36,15 +36,11 @@
         "ParameterValue": "12-codepipeline/lab12-2-2/child.yml"
     },
     {
+        "ParameterKey": "ChildStackTemplateConfigurationFileLocation",
+        "ParameterValue": "12-codepipeline/lab12-2-2/template_configuration.json"
+    },
+    {
         "ParameterKey": "ChildStackName",
         "ParameterValue": "bgar-lab-pipeline-stack"
-    },
-    {
-        "ParameterKey": "ChildDDBTableName",
-        "ParameterValue": "bgar-ddb-table"
-    },
-    {
-        "ParameterKey": "ChildApplicationRoleName",
-        "ParameterValue": "bgar-lab-app-role"
     }
 ]

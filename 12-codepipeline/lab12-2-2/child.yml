@@ -32,7 +32,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: id
+        - AttributeName: ids
           AttributeType: S
       KeySchema:
         - AttributeName: id

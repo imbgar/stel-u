@@ -23,3 +23,7 @@ Delete your pipeline stack and leave your bucket stack alone. Once the pipeline 
 ===
 After deleting the pipeline stack I'm unable to delete the bucket stack due to the missing role. I was able to successfully delete it after recreating the pipeline stack with a hard-coded role name.
 ===
+
+Retrospective 12.2
+
+Commit a change to the master branch of your repository to demonstrate how using ChangeSets and the Pipeline Approval features can help guard against dropping and recreating the table.
