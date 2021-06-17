@@ -150,7 +150,15 @@ Resources:
                 StackName: !Ref ChildStackName
                 TemplatePath: !Sub LabSource::${ChildStackFileLocation}
                 ChangeSetName: lab-change-set
+            - Name: ManualApproval
+              RunOrder: 1
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: 1
             - Name: ExecuteChangeSet
+              RunOrder: 2
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
