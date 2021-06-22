@@ -1,0 +1,8 @@
+version: 0.2
+phases:
+  install:
+    commands:
+    - pip3 install awscli --upgrade --quiet
+  build:
+    commands:
+    - aws cloudformation validate-template --template-body template.yml

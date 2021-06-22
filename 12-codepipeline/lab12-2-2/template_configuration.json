@@ -1,0 +1,6 @@
+{
+    "Parameters" : {
+        "DDBTableName" : "bgar-ddb-lab",
+        "ApplicationRoleName" : "bgar-app-role"
+    }
+}

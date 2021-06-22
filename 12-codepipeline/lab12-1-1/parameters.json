@@ -1,0 +1,18 @@
+[
+    {
+    "ParameterKey": "BucketName",
+    "ParameterValue": "bgar-lab-12-1-1"
+    },
+    {
+        "ParameterKey": "GitHubOwner",
+        "ParameterValue": "imbgar"
+    },
+    {
+        "ParameterKey": "Branch",
+        "ParameterValue": "master"
+    },
+    {
+        "ParameterKey": "RepositoryName",
+        "ParameterValue": "stel-u"
+    }
+]

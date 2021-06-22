@@ -1,0 +1,42 @@
+[
+    {
+    "ParameterKey": "BucketName",
+    "ParameterValue": "bgar-lab-12-1-1"
+    },
+    {
+        "ParameterKey": "ChildBucketName",
+        "ParameterValue": "bgar-lab-pipeline-stack"
+    },
+    {
+        "ParameterKey": "GitHubOwner",
+        "ParameterValue": "imbgar"
+    },
+    {
+        "ParameterKey": "Branch",
+        "ParameterValue": "topic12"
+    },
+    {
+        "ParameterKey": "RepositoryName",
+        "ParameterValue": "stel-u"
+    },
+    {
+        "ParameterKey": "ValidateProjectName",
+        "ParameterValue": "bgat-stelu-lab12-1-2-validate"
+    },
+    {
+        "ParameterKey": "TestProjectName",
+        "ParameterValue": "bgat-stelu-lab12-1-2-test"
+    },
+    {
+        "ParameterKey": "TemplateFileLocation",
+        "ParameterValue": "./12-codepipeline/lab12-1-2/template.yml"
+    },
+    {
+        "ParameterKey": "ChildStackFileLocation",
+        "ParameterValue": "12-codepipeline/bucket.yml"
+    },
+    {
+        "ParameterKey": "ChildStackName",
+        "ParameterValue": "bgar-lab-pipeline-stack"
+    }
+]
